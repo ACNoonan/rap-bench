@@ -45,13 +45,20 @@ def fetch(segment: dict) -> None:
 def main() -> None:
     only = set(sys.argv[1:])
     AUDIO_DIR.mkdir(exist_ok=True)
+    failed = []
     for seg in load_segments():
         if only and seg["id"] not in only:
             continue
         if not seg.get("url"):
             print(f"  {seg['id']}: no url in segments.yaml, skipping")
             continue
-        fetch(seg)
+        try:
+            fetch(seg)
+        except subprocess.CalledProcessError as e:
+            failed.append(seg["id"])
+            print(f"  {seg['id']}: FAILED ({e})")
+    if failed:
+        sys.exit(f"failed: {', '.join(failed)}")
 
 
 if __name__ == "__main__":

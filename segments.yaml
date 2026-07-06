@@ -19,7 +19,7 @@ segments:
   - id: interview-control
     artist: Eminem
     track: "(any interview clip — conversational speech control)"
-    url: https://www.youtube.com/watch?v=6iHY5ROqBiE
+    url: https://www.youtube.com/watch?v=WgQI655FqtM  # 60 Minutes Archive: "Eminem rhymes the word orange"
     start: 0
     end: 45
     syl_per_sec: 4.0
