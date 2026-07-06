@@ -36,12 +36,12 @@ See [results/results.md](results/results.md).
 
 ## No audio in this repo
 
-The audio is commercially released music, so the repo ships **no audio, no
-stems, and no source URLs** — only the harness, the segment manifest
-(timestamps), short lyric excerpts for scoring, and results. Bring your own
-copies: fill in `url:` per segment in `segments.yaml` (any yt-dlp-compatible
-source) or drop pre-trimmed 16 kHz mono WAVs into `audio/<id>.wav` yourself.
-`audio/`, `stems/`, and `outputs/` are gitignored.
+The audio is commercially released music, so the repo ships **no audio and no
+stems** — only the harness, the segment manifest (timestamps plus links to
+public YouTube uploads, official where available), short lyric excerpts for
+scoring, and results. You fetch your own copies locally with
+`scripts/fetch.py`, or drop pre-trimmed 16 kHz mono WAVs into
+`audio/<id>.wav`. `audio/`, `stems/`, and `outputs/` are gitignored.
 
 ## Running it
 
