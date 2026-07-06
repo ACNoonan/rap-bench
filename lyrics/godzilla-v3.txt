@@ -1,5 +1,29 @@
-# Ground-truth lyrics for segment: godzilla-v3
-# Transcribe what is ACTUALLY rapped in the excerpt (official lyrics often
-# differ in fast passages). Verify by ear at 0.5x speed. Lines starting with #
-# are ignored by the scorer. Put (ad-libs) in parens, delete this TODO when done.
-TODO
+# DRAFT from lrclib.net (id 9967121: Eminem — Godzilla, 211s), trimmed to 177-210s.
+# Read along with audio/godzilla-v3.wav, fix what's actually rapped,
+# then delete the TODO-VERIFY line below.
+TODO-VERIFY
+I stack chips, you barely got a half-eaten Cheeto
+Fill 'em with the venom and eliminate 'em
+Other words, I Minute Maid 'em
+I don't wanna hurt 'em, but I did, I'm in a fit of rage
+I'm - again, nobody will evade
+I'm finna - 'em and - all their - bodies in the lake
+Obliterating everything, incinerate a renegade
+I'm here to make anybody who want it with the pen afraid
+But don't nobody want it, but they're gonna get it anyway
+'Cause I'm beginnin' to feel like I'm mentally ill
+I'm Attila, kill or be killed, I'm a killer bee, the vanilla gorilla
+You're bringin' the killer within me outta me
+You don't wanna be the enemy of the demon who entered me
+And be on the receivin' end of me, what stupidity it'd be
+Every bit of me's the epitome of a spitter
+When I'm in the vicinity, - you better duck
+Or you finna be dead the minute you run into me
+A hundred percent of you is a fifth of a percent of me
+I'm 'bout to fuckin' finish you, -, I'm unfadable
+You wanna battle, I'm available, I'm blowin' up like an inflatable
+I'm undebatable, I'm unavoidable, I'm unevadable
+I'm on the toilet bowl, I got a trailer full of money, and I'm paid in full
+I'm not afraid to pull a-
+Man, stop
+Look what I'm plannin', haha

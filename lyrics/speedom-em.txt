@@ -1,5 +1,27 @@
-# Ground-truth lyrics for segment: speedom-em
-# Transcribe what is ACTUALLY rapped in the excerpt (official lyrics often
-# differ in fast passages). Verify by ear at 0.5x speed. Lines starting with #
-# are ignored by the scorer. Put (ad-libs) in parens, delete this TODO when done.
-TODO
+# DRAFT from lrclib.net (id 7172717: Tech N9ne — Speedom (Wwc2), 295s), trimmed to 222-265s.
+# Read along with audio/speedom-em.wav, fix what's actually rapped,
+# then delete the TODO-VERIFY line below.
+TODO-VERIFY
+I flick it on fire, finish him when the flow in flight
+Feminine fakers fall, I'm floggin' a foe with a fife
+Never forget it, I severed the head of a critic
+I sped up and did it, you trippin' to be a dead epidemic
+Or wet up a clinic, and make a bloody redder percentage
+Of an addict who's havin' to get the lead of a cynic
+I was never the Devil, I put up a fight up in the industry
+Pedal to metal, we givin' the light, a lot of energy
+We reppin', beat checkin' he that be Koba
+If he's the evil enemy it'll be over
+Running you down, in front of your town
+You ever makin' fun of the clown, I'm gunnin' you down
+We doin' it under the ground, a wonderful sound
+If anybody come at the hound, no one'll be found, bitch!
+Would never be choppin' without Slick Rick
+I got it from the record "Lick the Balls" and this dick
+If you never listen to me, you musical misfit
+Nah, because every time I be droppin' I get bit
+I'm hearin' a lot of rappers, they tryin' to spit quick
+But the Middle West got them, and we kill them in this bitch
+If you ain't in my circle of choppers you missed it
+Because me and my nigga Twista rule it, and this it
+Speedom! (If you wanna go with us)

@@ -1,5 +1,24 @@
-# Ground-truth lyrics for segment: worldwide-choppers-twista
-# Transcribe what is ACTUALLY rapped in the excerpt (official lyrics often
-# differ in fast passages). Verify by ear at 0.5x speed. Lines starting with #
-# are ignored by the scorer. Put (ad-libs) in parens, delete this TODO when done.
-TODO
+# DRAFT from lrclib.net (id 34614382: Tech N9ne — Worldwide Choppers, 327s), trimmed to 250-285s.
+# Read along with audio/worldwide-choppers-twista.wav, fix what's actually rapped,
+# then delete the TODO-VERIFY line below.
+TODO-VERIFY
+And fuckin' everything up until there ain't no further mistakin'
+And bustin' everything up like a fuckin' angry Jamaican
+And shuttin' everything up, 'specially the ones who be hatin'
+They lovin' everything until I got 'em stutterin' stupid
+You hear 'em now? "D-d-d-d-don't do-do-do-do it"
+P-p-p-please? Wh-wh-wh-why you gotta t-try us?
+W-w-w-w-we already know that you be the nicest"
+And now I'ma come and kill 'em, get 'em, hit 'em, and finish 'em
+And bang 'em in the head and diminish 'em and then I'll
+Hit 'em again at a minimum, repeat comin' to kill 'em
+Then he be gotta be drillin' 'em, thinkin' "They gotta be feelin' 'em
+Spittin' lithium, see the way a nigga be spillin' 'em?
+And gettin' 'em stupid to the point where there's no forgivin' 'em?
+Hopin' you're listenin' and you're payin' attention
+And you're witnessin' the way that I be christenin' the mic
+And gettin' in the zone, I be flattenin' and packin' in
+People from the front to the back and
+They got me actin' a fool, I'm blackin', nigga, now I'm home
+I'm light years ahead of my peers
+Want some? You can come bring it right here

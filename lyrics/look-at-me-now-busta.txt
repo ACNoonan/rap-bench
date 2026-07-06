@@ -1,5 +1,23 @@
-# Ground-truth lyrics for segment: look-at-me-now-busta
-# Transcribe what is ACTUALLY rapped in the excerpt (official lyrics often
-# differ in fast passages). Verify by ear at 0.5x speed. Lines starting with #
-# are ignored by the scorer. Put (ad-libs) in parens, delete this TODO when done.
-TODO
+# DRAFT from lrclib.net (id 16323224: Chris Brown — Look At Me Now, 229s), trimmed to 127-170s.
+# Read along with audio/look-at-me-now-busta.wav, fix what's actually rapped,
+# then delete the TODO-VERIFY line below.
+TODO-VERIFY
+Fresher than a mo'fucker
+Man, fuck these bitch-ass niggas
+How y'all doin'? I'm Lil Tunechi
+I'm a nuisance, I go stupid
+I go dumb like the Three Stooges
+I don't eat sushi, I'm the shit
+No, I'm pollution, no substitution
+Got a bitch that play in movies
+In my jacuzzi, pussy juicy
+I never gave a fuck about a hater
+Got money on my radar, dressed like a skater
+Got a big house, came with an elevator
+You niggas ain't eatin', fuck it, tell a waiter
+Marley said, "Shoot 'em," and I said, "Okay"
+If you on that bullshit, then I'm like, "Olé"
+I don't care what you say, so don't even speak
+Your girlfriend a freak like Cirque Du Soleil
+That's word to my flag and my flag red
+I'm outta my head, bitch, I'm outta my mind

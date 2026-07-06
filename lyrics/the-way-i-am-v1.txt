@@ -1,5 +1,19 @@
-# Ground-truth lyrics for segment: the-way-i-am-v1
-# Transcribe what is ACTUALLY rapped in the excerpt (official lyrics often
-# differ in fast passages). Verify by ear at 0.5x speed. Lines starting with #
-# are ignored by the scorer. Put (ad-libs) in parens, delete this TODO when done.
-TODO
+# DRAFT from lrclib.net (id 19516343: Eminem — The Way I Am, 291s), trimmed to 25-65s.
+# Read along with audio/the-way-i-am-v1.wav, fix what's actually rapped,
+# then delete the TODO-VERIFY line below.
+TODO-VERIFY
+I sit back with this pack of Zig-Zags and this bag
+Of this weed, it gives me the shit needed to be
+The most meanest MC on this on this Earth
+And since birth I've been cursed with this curse to just curse
+And just blurt this berserk and bizarre shit that works
+And it sells and it helps in itself to relieve all this tension
+Dispensing these sentences, getting this stress
+That's been eating me recently off of this chest
+And I rest again peacefully
+But at least have the decency in you
+To leave me alone, when you freaks see me out
+In the streets when I'm eating or feeding my daughter
+To not come and speak to me
+I don't know you, and no, I don't owe you a mothafuckin' thing
+I'm not Mr. N'Sync, I'm not what your friends think
