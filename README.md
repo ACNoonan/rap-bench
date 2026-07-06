@@ -82,10 +82,16 @@ own dictation service: add a function to `BACKENDS` in
 | fast | Look at Me Now (Busta) · Speedom (Em) | 8–9 |
 | insane | Worldwide Choppers (Twista) · Rap God fast bit · Godzilla v3 | 9.6–10.6 |
 
-All timestamps verified by ear against the linked sources. Known issue: the
-Look at Me Now rip (music video, no official audio exists) sounds quiet and
-muddled — treat that segment's scores with suspicion until a better source
-is found.
+All timestamps verified by ear against the linked sources. Known issues:
+
+- The Look at Me Now rip (music video, no official audio exists) sounds
+  quiet and muddled — treat that segment's scores with suspicion until a
+  better source is found. Its sync stamps also don't match the album, so
+  LRCLIB drafts for it need manual re-windowing.
+- Clip boundaries don't land exactly on lyric-line boundaries; references
+  were hand-trimmed to match the audio, but expect a word or two of edge
+  noise (partial words at cut points) in absolute WER. It affects every
+  model identically, so rankings are unaffected.
 
 Contributions of verified segments welcome — especially non-Eminem choppers
 (Tech N9ne, Krayzie Bone, Daveed Diggs…) and non-English fast rap.

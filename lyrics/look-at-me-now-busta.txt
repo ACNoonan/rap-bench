@@ -1,23 +1,45 @@
-# DRAFT from lrclib.net (id 16323224: Chris Brown — Look At Me Now, 229s), trimmed to 127-170s.
-# Read along with audio/look-at-me-now-busta.wav, fix what's actually rapped,
-# then delete the TODO-VERIFY line below.
+# DRAFT from lrclib.net (id 16323224), re-trimmed to Busta's verse in ALBUM
+# time (69-122s) — the first draft was wrong because this segment's source is
+# the music video, whose clock doesn't match the album-relative sync stamps.
+# Your clip (audio/look-at-me-now-busta.wav) is 43s, so it likely ends before
+# the last few lines here: read along, trim the tail (and any lead-in) to
+# match the audio, fix words, then delete the TODO-VERIFY line.
 TODO-VERIFY
-Fresher than a mo'fucker
-Man, fuck these bitch-ass niggas
-How y'all doin'? I'm Lil Tunechi
-I'm a nuisance, I go stupid
-I go dumb like the Three Stooges
-I don't eat sushi, I'm the shit
-No, I'm pollution, no substitution
-Got a bitch that play in movies
-In my jacuzzi, pussy juicy
-I never gave a fuck about a hater
-Got money on my radar, dressed like a skater
-Got a big house, came with an elevator
-You niggas ain't eatin', fuck it, tell a waiter
-Marley said, "Shoot 'em," and I said, "Okay"
-If you on that bullshit, then I'm like, "Olé"
-I don't care what you say, so don't even speak
-Your girlfriend a freak like Cirque Du Soleil
-That's word to my flag and my flag red
-I'm outta my head, bitch, I'm outta my mind
+Ayo, Breezy
+Let me show you how to keep the dice rollin'
+When you're doin' that thing over there, homie
+(Ay, ay, ay, ay, ay, ay)
+Let's go!
+'Cause I'm feelin' like I'm runnin'
+And I'm feelin' like I gotta get away, get away, get away
+Better know that I don't, and I won't ever stop
+'Cause you know I gotta win everyday-day (go)
+See, they really, really wanna pop me (blow)
+Just know that you will never flop me (oh)
+And I know that I can be a little cocky (no)
+You ain't never gonna stop me
+Every time I come, a nigga gotta set it
+Then I gotta go, and then I gotta get it (woo)
+Then I gotta blow, and then I gotta show that
+Any little thing a nigga think that he be doin' (ooh-ooh)
+'Cause it doesn't matter, 'cause I'm gonna da-da-da-da (damn)
+Then I'm gonna murder everything and anything
+A ba-da-boom, a ba-da-bing, I gotta do a lotta things
+That make it clearer to a couple niggas that I always win
+And then I gotta get it again and again and then again
+And I be doin' it to death
+And now I move a little foul, a nigga better call a ref
+And everybody know my style and niggas know that I'm the best
+When it come to doin' this, and I be bangin' on my chest
+And I bang in the East, and I'm bangin' in the West
+And I come to give you more, and I will never give you less
+You will hear it in the street, or you could read it in the press
+Do you really wanna know what's next? (Let's go)
+See the way we on and then we all up in the race
+And you know we gotta go, don't try to keep up with the pace
+And we strugglin' and hustlin' and sendin' in and gettin'
+And we always gotta do it, take it to another place
+Gotta taste it and I gotta grab it
+And I gotta cut all through this traffic
+Just to be at the top of the throne
+Better know I gotta have it! (Have it!)

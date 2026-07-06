@@ -1,8 +1,7 @@
 # DRAFT from lrclib.net (id 34614382: Tech N9ne — Worldwide Choppers, 327s), trimmed to 250-285s.
 # Read along with audio/worldwide-choppers-twista.wav, fix what's actually rapped,
 # then delete the TODO-VERIFY line below.
-TODO-VERIFY
-And fuckin' everything up until there ain't no further mistakin'
+until there ain't no further mistakin'
 And bustin' everything up like a fuckin' angry Jamaican
 And shuttin' everything up, 'specially the ones who be hatin'
 They lovin' everything until I got 'em stutterin' stupid
@@ -20,5 +19,5 @@ And you're witnessin' the way that I be christenin' the mic
 And gettin' in the zone, I be flattenin' and packin' in
 People from the front to the back and
 They got me actin' a fool, I'm blackin', nigga, now I'm home
-I'm light years ahead of my peers
-Want some? You can come bring it right here
+(I'm light years ahead of my peers)
+

@@ -1,9 +1,7 @@
 # DRAFT from lrclib.net (id 7172717: Tech N9ne — Speedom (Wwc2), 295s), trimmed to 222-265s.
 # Read along with audio/speedom-em.wav, fix what's actually rapped,
 # then delete the TODO-VERIFY line below.
-TODO-VERIFY
-I flick it on fire, finish him when the flow in flight
-Feminine fakers fall, I'm floggin' a foe with a fife
+fakers fall, I'm floggin' a foe with a fife
 Never forget it, I severed the head of a critic
 I sped up and did it, you trippin' to be a dead epidemic
 Or wet up a clinic, and make a bloody redder percentage
@@ -24,4 +22,4 @@ I'm hearin' a lot of rappers, they tryin' to spit quick
 But the Middle West got them, and we kill them in this bitch
 If you ain't in my circle of choppers you missed it
 Because me and my nigga Twista rule it, and this it
-Speedom! (If you wanna go with us)
+Speedom!

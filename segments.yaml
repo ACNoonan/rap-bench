@@ -24,7 +24,7 @@ segments:
     syl_per_sec: 5.5
     tier: baseline
     timing_verified: true
-    lyrics_verified: false
+    lyrics_verified: true
 
   - id: the-way-i-am-v1
     artist: Eminem
@@ -35,7 +35,7 @@ segments:
     syl_per_sec: 5.5
     tier: baseline
     timing_verified: true
-    lyrics_verified: false
+    lyrics_verified: true
 
   - id: look-at-me-now-busta
     artist: Busta Rhymes
@@ -63,7 +63,7 @@ segments:
     syl_per_sec: 9.0
     tier: fast
     timing_verified: true
-    lyrics_verified: false
+    lyrics_verified: true
 
   - id: worldwide-choppers-twista
     artist: Twista
@@ -75,7 +75,7 @@ segments:
     syl_per_sec: 10.0
     tier: insane
     timing_verified: true
-    lyrics_verified: false
+    lyrics_verified: true
 
   - id: rap-god-fast
     artist: Eminem
@@ -86,7 +86,7 @@ segments:
     syl_per_sec: 9.6
     tier: insane
     timing_verified: true
-    lyrics_verified: false
+    lyrics_verified: true
     notes: The "supersonic speed" segment.
 
   - id: godzilla-v3
@@ -98,5 +98,5 @@ segments:
     syl_per_sec: 10.6
     tier: insane
     timing_verified: true
-    lyrics_verified: false
+    lyrics_verified: true
     notes: Verse 3 — the Guinness-pace one.
