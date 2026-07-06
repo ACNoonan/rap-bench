@@ -36,14 +36,17 @@ class SegmentScore:
 def score_segment(
     segment: dict, reference: str, hypothesis: str, rtf: float | None = None
 ) -> SegmentScore:
-    ref = normalize(reference)
+    """Parenthesized (ad-libs) in the reference are optional: the hypothesis
+    is scored against the reference both with and without them, best taken —
+    a model shouldn't lose points for hearing more of the track."""
     hyp = normalize(hypothesis)
+    variants = {normalize(reference, strip_adlibs=s) for s in (True, False)}
     return SegmentScore(
         segment_id=segment["id"],
         tier=segment["tier"],
         syl_per_sec=segment["syl_per_sec"],
-        wer=jiwer.wer(ref, hyp),
-        ref_words=len(ref.split()),
+        wer=min(jiwer.wer(ref, hyp) for ref in variants),
+        ref_words=len(normalize(reference).split()),
         rtf=rtf,
     )
 
