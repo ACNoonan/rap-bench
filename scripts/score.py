@@ -12,7 +12,13 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from rapbench import LYRICS_DIR, OUTPUTS_DIR, RESULTS_DIR, load_segments
-from rapbench.scoring import SURVIVAL_WER, TIER_ORDER, max_clean_rate, score_segment
+from rapbench.scoring import (
+    SURVIVAL_WER,
+    TIER_ORDER,
+    max_clean_rate,
+    max_live_rate,
+    score_segment,
+)
 
 
 def load_reference(segment_id: str) -> str | None:
@@ -25,6 +31,13 @@ def load_reference(segment_id: str) -> str | None:
     if not text or "TODO" in text:
         return None
     return text
+
+
+def load_rtf(run: Path, segment: dict) -> float | None:
+    time_path = run / f"{segment['id']}.time"
+    if not time_path.exists():
+        return None
+    return float(time_path.read_text()) / (segment["end"] - segment["start"])
 
 
 def main() -> None:
@@ -48,11 +61,14 @@ def main() -> None:
     lines = [
         "# rap-bench results",
         "",
-        f"WER after lyric normalization; survival threshold {SURVIVAL_WER:.0%}. "
-        "**max clean rate** = fastest syl/sec tier survived (control excluded).",
+        f"Cells are `WER · RTF` after lyric normalization; survival threshold {SURVIVAL_WER:.0%}. "
+        "💀 = WER over threshold, 🐢 = accurate but slower than real time. "
+        "**max clean rate** = fastest syl/sec transcribed accurately; "
+        "**max live rate** = fastest syl/sec transcribed accurately AND faster "
+        "than the rapper (RTF < 1) — the golden standard.",
         "",
-        "| model | " + " | ".join(ordered) + " | max clean rate |",
-        "|---" * (len(ordered) + 2) + "|",
+        "| model | " + " | ".join(ordered) + " | max clean rate | max live rate |",
+        "|---" * (len(ordered) + 3) + "|",
     ]
 
     for run in runs:
@@ -63,13 +79,23 @@ def main() -> None:
             if not hyp_path.exists():
                 cells.append("—")
                 continue
-            score = score_segment(segments[sid], references[sid], hyp_path.read_text())
+            score = score_segment(
+                segments[sid], references[sid], hyp_path.read_text(), rtf=load_rtf(run, segments[sid])
+            )
             scores.append(score)
-            mark = "" if score.survived else " 💀"
-            cells.append(f"{score.wer:.0%}{mark}")
-        rate = max_clean_rate(scores)
-        lines.append(f"| {run.name} | " + " | ".join(cells) + f" | {rate:.1f} syl/s |")
-        print(f"{run.name}: max clean rate {rate:.1f} syl/s")
+            cell = f"{score.wer:.0%}"
+            if score.rtf is not None:
+                cell += f" · {score.rtf:.2f}×"
+            if not score.survived:
+                cell += " 💀"
+            elif score.rtf is not None and not score.live:
+                cell += " 🐢"
+            cells.append(cell)
+        clean, live = max_clean_rate(scores), max_live_rate(scores)
+        lines.append(
+            f"| {run.name} | " + " | ".join(cells) + f" | {clean:.1f} syl/s | {live:.1f} syl/s |"
+        )
+        print(f"{run.name}: max clean rate {clean:.1f} syl/s, max live rate {live:.1f} syl/s")
 
     lines += [
         "",

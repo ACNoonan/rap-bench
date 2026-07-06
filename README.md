@@ -7,9 +7,15 @@ on clean speech. This benchmark asks the question that actually matters:
 *can it transcribe "Rap God"?*
 
 rap-bench scores open-source ASR models on a difficulty ladder of fast-rap
-excerpts, from conversational speech (control) up to the Guinness-pace third
-verse of "Godzilla" (~10.6 syllables/sec). The headline stat per model is its
-**max clean rate**: the fastest syllable rate it survives with WER under 25%.
+excerpts, up to the Guinness-pace third verse of "Godzilla"
+(~10.6 syllables/sec). Two stats per model:
+
+- **max clean rate** — the fastest syllable rate it transcribes with WER
+  under 25%.
+- **max live rate** — the fastest syllable rate it transcribes accurately
+  *and* faster than real time (RTF < 1). This is the golden standard:
+  generating tokens at least as fast as the rapper spits them, i.e. the
+  model could live-transcribe the verse.
 
 ## Results
 
@@ -18,9 +24,12 @@ See [results/results.md](results/results.md).
 ## Design
 
 - **Difficulty ladder, not just WER.** Segments are tiered
-  `control → baseline → fast → insane` by peak syllable rate
-  (see [segments.yaml](segments.yaml)). Everyone aces the control; the
-  leaderboard is about where each model falls off the cliff.
+  `baseline → fast → insane` by peak syllable rate
+  (see [segments.yaml](segments.yaml)). The leaderboard is about where each
+  model falls off the cliff.
+- **Speed counts.** `transcribe.py` times inference (model load excluded)
+  and `score.py` reports real-time factor per segment. Accuracy alone gets
+  you *max clean rate*; accuracy at RTF < 1 gets you *max live rate*.
 - **Raw mix vs. separated vocals.** Half of what kills ASR on rap is the beat,
   not the speed. Every model runs twice — on the raw track and on
   demucs-extracted vocal stems — turning that confound into a second axis.
@@ -31,8 +40,9 @@ See [results/results.md](results/results.md).
   lyrics-transcription benchmark.
 - **Contested ground truth.** Official lyrics often don't match what's
   actually rapped in fast passages. References in `lyrics/` are hand-verified
-  by ear at 0.5× speed against the excerpt; segments still marked
-  `verified: false` in the manifest are excluded from headline results.
+  by ear at 0.5× speed against the excerpt; the manifest tracks
+  `timing_verified` and `lyrics_verified` per segment, and the scorer skips
+  segments whose lyrics are still TODO.
 
 ## No audio in this repo
 
@@ -68,10 +78,14 @@ own dictation service: add a function to `BACKENDS` in
 
 | tier | segment | ~syl/sec |
 |---|---|---|
-| control | Eminem interview clip (speech baseline) | ~4 |
 | baseline | Lose Yourself v1 · The Way I Am v1 | ~5.5 |
 | fast | Look at Me Now (Busta) · Speedom (Em) | 8–9 |
 | insane | Worldwide Choppers (Twista) · Rap God fast bit · Godzilla v3 | 9.6–10.6 |
+
+All timestamps verified by ear against the linked sources. Known issue: the
+Look at Me Now rip (music video, no official audio exists) sounds quiet and
+muddled — treat that segment's scores with suspicion until a better source
+is found.
 
 Contributions of verified segments welcome — especially non-Eminem choppers
 (Tech N9ne, Krayzie Bone, Daveed Diggs…) and non-English fast rap.

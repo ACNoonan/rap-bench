@@ -8,28 +8,13 @@
 #                uploads preferred over music videos (album timing, no video
 #                intros). Swap for your own copies if you prefer.
 #   start/end  — excerpt bounds in seconds, relative to the source at `url`.
-#                Timestamps below are approximate until verified: true.
 #   syl_per_sec — approximate peak syllable rate, for the difficulty ladder.
-#   tier       — control | baseline | fast | insane
-#
-# verified: false means BOTH the timestamps and the lyric file still need a
-# human pass. Do not trust scores from unverified segments.
+#   tier       — baseline | fast | insane
+#   timing_verified — start/end confirmed by ear against the source at `url`.
+#   lyrics_verified — lyrics/<id>.txt transcribed and checked at 0.5x speed.
+#                     Scores are only trustworthy when both are true.
 
 segments:
-  - id: interview-control
-    artist: Eminem
-    track: "(any interview clip — conversational speech control)"
-    url: https://www.youtube.com/watch?v=WgQI655FqtM  # 60 Minutes Archive: "Eminem rhymes the word orange"
-    start: 0
-    end: 45
-    syl_per_sec: 4.0
-    tier: control
-    verified: false
-    notes: >
-      Clean-speech control with the same voice. Separates "ASR struggles with
-      music" from "ASR struggles with speed". Pick any interview segment and
-      transcribe it by hand for ground truth.
-
   - id: lose-yourself-v1
     artist: Eminem
     track: Lose Yourself
@@ -38,7 +23,8 @@ segments:
     end: 95
     syl_per_sec: 5.5
     tier: baseline
-    verified: false
+    timing_verified: true
+    lyrics_verified: false
 
   - id: the-way-i-am-v1
     artist: Eminem
@@ -48,7 +34,8 @@ segments:
     end: 65
     syl_per_sec: 5.5
     tier: baseline
-    verified: false
+    timing_verified: true
+    lyrics_verified: false
 
   - id: look-at-me-now-busta
     artist: Busta Rhymes
@@ -58,11 +45,12 @@ segments:
     end: 170
     syl_per_sec: 8.0
     tier: fast
-    verified: false
+    timing_verified: true
+    lyrics_verified: false
     notes: >
-      URL is the official music video (no official-audio upload found) —
-      video timing may drift from the album version; check where Busta's
-      verse actually starts before trusting start/end.
+      Source is the official music video (no official-audio upload found).
+      Timestamp checked, but the vocal sounds quiet/muddled in this rip —
+      consider a better source before trusting results on this segment.
 
   - id: speedom-em
     artist: Eminem
@@ -72,7 +60,8 @@ segments:
     end: 265
     syl_per_sec: 9.0
     tier: fast
-    verified: false
+    timing_verified: true
+    lyrics_verified: false
 
   - id: worldwide-choppers-twista
     artist: Twista
@@ -82,11 +71,8 @@ segments:
     end: 285
     syl_per_sec: 10.0
     tier: insane
-    verified: false
-    notes: >
-      Track has 8+ features over ~6 minutes; Twista's verse position is the
-      least certain timestamp in this manifest — locate it by ear before
-      fetching.
+    timing_verified: true
+    lyrics_verified: false
 
   - id: rap-god-fast
     artist: Eminem
@@ -96,7 +82,8 @@ segments:
     end: 280
     syl_per_sec: 9.6
     tier: insane
-    verified: false
+    timing_verified: true
+    lyrics_verified: false
     notes: The "supersonic speed" segment.
 
   - id: godzilla-v3
@@ -107,5 +94,6 @@ segments:
     end: 210
     syl_per_sec: 10.6
     tier: insane
-    verified: false
+    timing_verified: true
+    lyrics_verified: false
     notes: Verse 3 — the Guinness-pace one.
