@@ -1,0 +1,10 @@
+# Copyrighted audio stays local — the repo ships only the harness,
+# manifest, lyric excerpts, and results.
+audio/
+stems/
+outputs/
+
+__pycache__/
+*.egg-info/
+.venv/
+.DS_Store

@@ -1,0 +1,18 @@
+[project]
+name = "rap-bench"
+version = "0.1.0"
+description = "MMLU: Marshall Mathers Lyrical Understanding — how fast a rapper can open-source ASR survive?"
+requires-python = ">=3.10"
+dependencies = [
+    "jiwer>=3.0",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+fetch = ["yt-dlp"]
+separate = ["demucs"]
+whisper = ["faster-whisper"]
+hf = ["transformers", "torch", "torchaudio"]
+
+[tool.setuptools]
+packages = ["rapbench"]

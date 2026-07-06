@@ -1,0 +1,5 @@
+# Ground-truth lyrics for segment: speedom-em
+# Transcribe what is ACTUALLY rapped in the excerpt (official lyrics often
+# differ in fast passages). Verify by ear at 0.5x speed. Lines starting with #
+# are ignored by the scorer. Put (ad-libs) in parens, delete this TODO when done.
+TODO
