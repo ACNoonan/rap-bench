@@ -4,8 +4,9 @@
 # scored against hand-verified lyrics in lyrics/<id>.txt.
 #
 # Fields:
-#   url        — source to download (fill in yourself; yt-dlp compatible).
-#                Left null in the published repo: bring your own audio.
+#   url        — source to download (yt-dlp compatible). Official-audio
+#                uploads preferred over music videos (album timing, no video
+#                intros). Swap for your own copies if you prefer.
 #   start/end  — excerpt bounds in seconds, relative to the source at `url`.
 #                Timestamps below are approximate until verified: true.
 #   syl_per_sec — approximate peak syllable rate, for the difficulty ladder.
@@ -18,7 +19,7 @@ segments:
   - id: interview-control
     artist: Eminem
     track: "(any interview clip — conversational speech control)"
-    url: null
+    url: https://www.youtube.com/watch?v=6iHY5ROqBiE
     start: 0
     end: 45
     syl_per_sec: 4.0
@@ -32,7 +33,7 @@ segments:
   - id: lose-yourself-v1
     artist: Eminem
     track: Lose Yourself
-    url: null
+    url: https://www.youtube.com/watch?v=zlJ0Aj9y67c
     start: 53
     end: 95
     syl_per_sec: 5.5
@@ -42,7 +43,7 @@ segments:
   - id: the-way-i-am-v1
     artist: Eminem
     track: The Way I Am
-    url: null
+    url: https://www.youtube.com/watch?v=oLiZi2DWZnE
     start: 25
     end: 65
     syl_per_sec: 5.5
@@ -52,17 +53,21 @@ segments:
   - id: look-at-me-now-busta
     artist: Busta Rhymes
     track: "Look at Me Now (Chris Brown ft. Lil Wayne, Busta Rhymes)"
-    url: null
+    url: https://www.youtube.com/watch?v=8gyLR4NfMiI
     start: 127
     end: 170
     syl_per_sec: 8.0
     tier: fast
     verified: false
+    notes: >
+      URL is the official music video (no official-audio upload found) —
+      video timing may drift from the album version; check where Busta's
+      verse actually starts before trusting start/end.
 
   - id: speedom-em
     artist: Eminem
     track: "Speedom (WWC2) (Tech N9ne ft. Eminem)"
-    url: null
+    url: https://www.youtube.com/watch?v=_FBwVRNOL70
     start: 222
     end: 265
     syl_per_sec: 9.0
@@ -72,17 +77,21 @@ segments:
   - id: worldwide-choppers-twista
     artist: Twista
     track: "Worldwide Choppers (Tech N9ne ft. Twista et al.)"
-    url: null
+    url: https://www.youtube.com/watch?v=0GhbkrOg9gA
     start: 250
     end: 285
     syl_per_sec: 10.0
     tier: insane
     verified: false
+    notes: >
+      Track has 8+ features over ~6 minutes; Twista's verse position is the
+      least certain timestamp in this manifest — locate it by ear before
+      fetching.
 
   - id: rap-god-fast
     artist: Eminem
     track: Rap God
-    url: null
+    url: https://www.youtube.com/watch?v=4sWKMo0UFrQ
     start: 262
     end: 280
     syl_per_sec: 9.6
@@ -93,7 +102,7 @@ segments:
   - id: godzilla-v3
     artist: Eminem
     track: Godzilla
-    url: null
+    url: https://www.youtube.com/watch?v=9XvXF1LrWgA
     start: 177
     end: 210
     syl_per_sec: 10.6
