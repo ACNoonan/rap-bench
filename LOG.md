@@ -278,3 +278,37 @@ worse. Both are far above the 25% survival line: live captioning of
 unseen fast rap remains open. Lesson for the harness: streaming
 evaluation needs its own commit protocol per architecture — subword vs
 word units and tail-revision behavior are model-specific.
+
+## 2026-07-07 — realtime on KNOWN samples: first live survival, and streaming flattens memorization
+
+Ran both sustained live configs over the exhibition tier (batch WER →
+live WER):
+
+| segment (syl/s) | whisper-fast live | parakeet-native live |
+|---|---|---|
+| lose-yourself (5.5) | 7% → 34% | 11% → **22% ✓ SURVIVES** |
+| speedom (9.0) | 22% → 43% | 33% → 80%* |
+| rap-god (9.6) | 39% → 42% | 26% → 62% |
+| godzilla (10.6) | 51% → 59% | 40% → 63% |
+| suno02 unseen (8.4) | 42% → 58% | 55% → 71% |
+
+- **First live survival on record: parakeet-native live-captions Lose
+  Yourself at 22% WER, zero overruns, ~2.3s delay.** The live golden
+  standard is finally claimed — at baseline tier, on famous material.
+- **Reversal at baseline: parakeet beats whisper live** (22% vs 34%)
+  despite losing everywhere in batch. Whisper's chunked-window hack
+  bleeds accuracy on easy audio (6s windows starve its LM context;
+  temp=0 removes its recovery mechanism), while parakeet's native
+  streaming was designed for this. Architecture-for-streaming matters
+  more than raw batch accuracy on the easy end.
+- **Streaming compresses the memorization advantage but doesn't erase
+  it**: whisper famous-vs-unseen delta at ~9 syl/s is ~15 pts live
+  (43 vs 58) vs ~20 pts batch. Even 6-second windows carry enough
+  context to surf memorized lyrics.
+- **Streaming hurts most where batch was best** (whisper: +27 pts on
+  Lose Yourself, +3 on Rap God) — when batch is already failing there's
+  little left to lose. The live-vs-batch gap is largest exactly on the
+  material vendors demo.
+- *parakeet speedom 80% came with 306 commits vs ~220 ref words — some
+  may be commit-protocol insertions on the dense mix rather than pure
+  mishearing; commit-protocol noise is itself a streaming-eval finding.
