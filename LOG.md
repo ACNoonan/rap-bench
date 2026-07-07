@@ -117,3 +117,26 @@ availability *correlates with* training-set contamination — the
 tracks you can verify are the tracks models memorized. Synthetic
 generation is the only clean escape, if it can reach the required
 syllable rates.
+
+## 2026-07-06 — Suno feasibility probe (take 1)
+
+Generated "Syllable Centrifuge" from verse-01 lyrics via Suno web UI
+(style: "midwest chopper hip hop, rapid-fire double-time flow, 150 BPM").
+77.7s track. Measured via mlx-turbo word timestamps:
+
+- **Adherence: strong.** The sung verse tracks our lyrics nearly
+  verbatim — verification burden is a light read-along, not a rewrite.
+  (Apparent errors like "abolisher of bicycles" are plausibly ASR
+  mistakes, not Suno's; needs one listen to attribute. First two lines
+  possibly absorbed into the intro.)
+- **Speed: insufficient (this take).** Verse mean 4.9 syl/s, peak 5s
+  window 6.2 — baseline tier, despite the double-time style prompt.
+  Chopper territory (8-11) not reached.
+- **Bonus finding:** whisper loop-hallucinated "Ja" ~230 times over the
+  non-verse intro — music-conditioned repetition collapse on a clip
+  whose lyrics it definitely never saw in training.
+
+Open: can prompt engineering push Suno to 8+? If its ceiling is ~6.5
+native, options are (a) hybrid: small stretch (≤1.3×) on natively-rapped
+audio — partially reintroduces the stretch confound but on real flow;
+(b) Suno covers baseline/fast, obscure real choppers cover insane.
