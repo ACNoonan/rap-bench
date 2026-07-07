@@ -66,7 +66,12 @@ def load_hf_pipeline(variant: str):
 
 
 def run_hf_pipeline(pipe, path: Path) -> str:
-    return pipe(str(path), return_timestamps=True)["text"].strip()
+    try:
+        # Whisper-family needs timestamps for >30s inputs...
+        return pipe(str(path), return_timestamps=True)["text"].strip()
+    except ValueError:
+        # ...but e.g. moonshine rejects the flag outright.
+        return pipe(str(path))["text"].strip()
 
 
 def load_mlx_whisper(variant: str):
