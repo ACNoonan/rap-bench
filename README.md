@@ -92,6 +92,9 @@ All timestamps verified by ear against the linked sources. Known issues:
   were hand-trimmed to match the audio, but expect a word or two of edge
   noise (partial words at cut points) in absolute WER. It affects every
   model identically, so rankings are unaffected.
+- RTF on `vocals` runs measures ASR inference only — demucs separation time
+  is not counted, so live-rate claims from separated-vocals runs are
+  optimistic about a true live pipeline.
 
 Contributions of verified segments welcome — especially non-Eminem choppers
 (Tech N9ne, Krayzie Bone, Daveed Diggs…) and non-English fast rap.
