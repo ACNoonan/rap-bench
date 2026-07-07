@@ -338,3 +338,35 @@ Effects vs the old max-clean-rate metric:
 Still design-only from DESIGN.md: RTF as median of ≥3 timing runs;
 bootstrap CIs; memorization delta as a computed stat (needs matched-rate
 exhibition/core pairs — currently hand-read).
+
+## 2026-07-07 — core curve resolves: unseen ceiling ~6 syl/s; whisper memorized ~2x more than parakeet
+
+suno01 (4.9 syl/s, same Suno voice/production as suno02) formalized as
+the core low rung. With two rate points the core critical rates resolve:
+
+| model | core crit. rate | exhibition crit. rate | delta (memorization + domain) |
+|---|---|---|---|
+| mlx-turbo | 6.2 | 9.1 | 2.9 |
+| large-v3 | 6.2 | 9.2 | 3.0 |
+| turbo | 6.1 | 9.0 | 2.9 |
+| parakeet | 6.0 | 7.6 | **1.6** |
+| distil | 5.6 | 8.0 | 2.4 |
+| small | 4.9 | 7.5 | 2.6 |
+
+- **Unseen fast rap: every surviving model's critical rate sits at
+  ~5-6 syl/s** — barely above conversational speech. The insane tier
+  (9.6-10.6) is 4+ syl/s beyond anything's real ability.
+- **suno01 exonerates the domain-shift alternative**: at 4.9 syl/s the
+  same synthetic voice/production scores 10-17% for the strong models —
+  unseen synthetic vocals are NOT inherently hard. Within identical
+  domain, 4.9 → 8.4 syl/s takes large-v3 from 10% to 51%. It's the
+  rate.
+- **The exhibition−core critical-rate delta differs by training data:
+  ~2.9-3.0 syl/s for whisper-family vs 1.6 for parakeet.** Whisper's
+  web-scraped corpus memorized roughly twice as much famous-rap
+  advantage as parakeet's clean-speech corpus. The delta metric works.
+- Caveats: two-point curves make the interpolated crossings coarse
+  (long linear span 4.9→8.4); suno01 ground truth is ASR-consensus,
+  human read-along pending; cross-population delta still bundles any
+  residual domain gap — matched human-recorded material would isolate
+  it fully.

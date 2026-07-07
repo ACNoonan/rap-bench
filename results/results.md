@@ -24,16 +24,16 @@ Segments easy → hard: lose-yourself-v1 (5.5 syl/s), the-way-i-am-v1 (5.5 syl/s
 
 ## core
 
-| model | suno02 | critical rate | live critical rate |
-|---|---|---|---|
-| faster-whisper-distil-large-v3__raw | 60% · 0.24× 💀 | <8.4 | <8.4 |
-| faster-whisper-large-v3__raw | 51% · 1.39× 💀 | <8.4 | <8.4 |
-| faster-whisper-small__raw | 64% · 0.24× 💀 | <8.4 | <8.4 |
-| faster-whisper-tiny__raw | 66% · 0.20× 💀 | <8.4 | <8.4 |
-| faster-whisper-turbo__raw | 44% · 0.29× 💀 | <8.4 | <8.4 |
-| hf-UsefulSensors-moonshine-base__raw | 64% · 0.16× 💀 | <8.4 | <8.4 |
-| hf-facebook-wav2vec2-large-960h-lv60-self__raw | 91% · 0.03× 💀 | <8.4 | <8.4 |
-| mlx-whisper-mlx-community-whisper-large-v3-turbo__raw | 42% · 0.05× 💀 | <8.4 | <8.4 |
-| parakeet-mlx-community-parakeet-tdt-0.6b-v2__raw | 55% · 0.03× 💀 | <8.4 | <8.4 |
+| model | suno01 | suno02 | critical rate | live critical rate |
+|---|---|---|---|---|
+| faster-whisper-distil-large-v3__raw | 17% · 0.21× | 60% · 0.24× 💀 | 5.6 | 5.6 |
+| faster-whisper-large-v3__raw | 10% · 0.87× | 51% · 1.39× 💀 | 6.2 | 5.5 |
+| faster-whisper-small__raw | 25% · 0.18× | 64% · 0.24× 💀 | 4.9 | 4.9 |
+| faster-whisper-tiny__raw | 47% · 0.03× 💀 | 66% · 0.20× 💀 | <4.9 | <4.9 |
+| faster-whisper-turbo__raw | 15% · 0.24× | 44% · 0.29× 💀 | 6.1 | 6.1 |
+| hf-UsefulSensors-moonshine-base__raw | 42% · 0.12× 💀 | 64% · 0.16× 💀 | <4.9 | <4.9 |
+| hf-facebook-wav2vec2-large-960h-lv60-self__raw | 95% · 0.04× 💀 | 91% · 0.03× 💀 | <4.9 | <4.9 |
+| mlx-whisper-mlx-community-whisper-large-v3-turbo__raw | 15% · 0.04× | 42% · 0.05× 💀 | 6.2 | 6.2 |
+| parakeet-mlx-community-parakeet-tdt-0.6b-v2__raw | 12% · 0.02× | 55% · 0.03× 💀 | 6.0 | 6.0 |
 
-Segments easy → hard: suno02 (8.4 syl/s)
+Segments easy → hard: suno01 (4.9 syl/s), suno02 (8.4 syl/s)

@@ -253,3 +253,19 @@ segments:
       Contamination-free generated chopper (peak 10.6 syl/s in 5s window).
       Ground truth is the sung rendition of synthetic/verse-01.txt
       ("adamant" mispronounced, see lyrics file header).
+
+  - id: suno01
+    population: core
+    artist: "synthetic (Suno)"
+    track: "Syllable Centrifuge take 1 — core low rung"
+    url: null
+    start: 0
+    end: 44.2
+    syl_per_sec: 4.9
+    tier: baseline
+    timing_verified: true
+    lyrics_verified: false
+    notes: >
+      Verse region of Suno take 1 (intro with ad-lib wall trimmed off).
+      Sung truth from two-model ASR consensus; human read-along pending.
+      Enters mid-line-3 of verse-01; tail "(an incubator)" optional.

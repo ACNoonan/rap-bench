@@ -1,0 +1,19 @@
+# Core-tier segment #2: Suno take 1, verse region trimmed (20.6-64.8s of the
+# full track). Sung truth per two-model ASR consensus: lines 1-2 of
+# verse-01.txt are NOT in this window (absorbed into the intro), the verse
+# enters mid-line-3. Final "(an incubator)" is faint/uncertain -> optional.
+# Human read-along still pending (lyrics_verified: false in manifest).
+Collecting what the cataclysm scattered,
+pattern-mapper, data splatter, chatter in the ladder of the algorithm.
+Verbal avalanche, I channel granite into gravel when I travel,
+battle-ready, petty rivals unravel when the gavel lands.
+Metronome demolisher, abolisher of obstacles,
+monological, illogical to copy me, impossible.
+Syllable centrifuge, spinning every sentence into triplicate,
+intricate, the ligaments are limber so I'm limitless.
+Diligent, the sentiment is militant, benevolent,
+elegant belligerence, delivering the evidence.
+Rapid-fire lexicon, the second one is heavier,
+readier and steadier, a predator, a renegade.
+Never need a breather 'cause the ether in my respirator
+regulates the meter like a metronome, (an incubator).
