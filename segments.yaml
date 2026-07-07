@@ -100,3 +100,123 @@ segments:
     timing_verified: true
     lyrics_verified: true
     notes: Verse 3 — the Guinness-pace one.
+
+  - id: synth01-acap-r5.0
+    artist: synthetic
+    track: "verse-01 TTS acap @ 5.0 syl/s"
+    url: null
+    start: 0
+    end: 52.00
+    syl_per_sec: 5.0
+    tier: baseline
+    timing_verified: true
+    lyrics_verified: true
+    notes: synthetic tier (DESIGN.md) — exact ground truth by construction
+
+  - id: synth01-beat-r5.0
+    artist: synthetic
+    track: "verse-01 TTS beat @ 5.0 syl/s"
+    url: null
+    start: 0
+    end: 52.00
+    syl_per_sec: 5.0
+    tier: baseline
+    timing_verified: true
+    lyrics_verified: true
+    notes: synthetic tier (DESIGN.md) — exact ground truth by construction
+
+  - id: synth01-acap-r6.5
+    artist: synthetic
+    track: "verse-01 TTS acap @ 6.5 syl/s"
+    url: null
+    start: 0
+    end: 40.01
+    syl_per_sec: 6.5
+    tier: baseline
+    timing_verified: true
+    lyrics_verified: true
+    notes: synthetic tier (DESIGN.md) — exact ground truth by construction
+
+  - id: synth01-beat-r6.5
+    artist: synthetic
+    track: "verse-01 TTS beat @ 6.5 syl/s"
+    url: null
+    start: 0
+    end: 40.01
+    syl_per_sec: 6.5
+    tier: baseline
+    timing_verified: true
+    lyrics_verified: true
+    notes: synthetic tier (DESIGN.md) — exact ground truth by construction
+
+  - id: synth01-acap-r8.0
+    artist: synthetic
+    track: "verse-01 TTS acap @ 8.0 syl/s"
+    url: null
+    start: 0
+    end: 32.48
+    syl_per_sec: 8.0
+    tier: fast
+    timing_verified: true
+    lyrics_verified: true
+    notes: synthetic tier (DESIGN.md) — exact ground truth by construction
+
+  - id: synth01-beat-r8.0
+    artist: synthetic
+    track: "verse-01 TTS beat @ 8.0 syl/s"
+    url: null
+    start: 0
+    end: 32.48
+    syl_per_sec: 8.0
+    tier: fast
+    timing_verified: true
+    lyrics_verified: true
+    notes: synthetic tier (DESIGN.md) — exact ground truth by construction
+
+  - id: synth01-acap-r9.5
+    artist: synthetic
+    track: "verse-01 TTS acap @ 9.5 syl/s"
+    url: null
+    start: 0
+    end: 27.33
+    syl_per_sec: 9.5
+    tier: insane
+    timing_verified: true
+    lyrics_verified: true
+    notes: synthetic tier (DESIGN.md) — exact ground truth by construction
+
+  - id: synth01-beat-r9.5
+    artist: synthetic
+    track: "verse-01 TTS beat @ 9.5 syl/s"
+    url: null
+    start: 0
+    end: 27.33
+    syl_per_sec: 9.5
+    tier: insane
+    timing_verified: true
+    lyrics_verified: true
+    notes: synthetic tier (DESIGN.md) — exact ground truth by construction
+
+  - id: synth01-acap-r11.0
+    artist: synthetic
+    track: "verse-01 TTS acap @ 11.0 syl/s"
+    url: null
+    start: 0
+    end: 23.62
+    syl_per_sec: 11.0
+    tier: insane
+    timing_verified: true
+    lyrics_verified: true
+    notes: synthetic tier (DESIGN.md) — exact ground truth by construction
+
+  - id: synth01-beat-r11.0
+    artist: synthetic
+    track: "verse-01 TTS beat @ 11.0 syl/s"
+    url: null
+    start: 0
+    end: 23.62
+    syl_per_sec: 11.0
+    tier: insane
+    timing_verified: true
+    lyrics_verified: true
+    notes: synthetic tier (DESIGN.md) — exact ground truth by construction
