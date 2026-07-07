@@ -184,3 +184,33 @@ Also confirmed by ear: Suno mispronounced "adamant and" (sounds like
 they were RIGHT and the written lyrics were wrong. Locks in the
 sung-not-written ground-truth principle. suno02 formalized as core
 segment #1 (31.4s, mean 8.4 syl/s, peak 10.6) with sung-truth lyrics.
+
+## 2026-07-06 — core segment #1 results: the fast-tier leaderboard was memorization
+
+Full roster on suno02 (contamination-free chopper, mean 8.4 syl/s, peak
+10.6, sung-truth reference):
+
+**Every model dead. Best: mlx-turbo 42%.** Ranking: mlx-turbo 42%, CT2
+turbo 44%, large-v3 51%, parakeet 55%, distil 60%, small/moonshine 64%,
+tiny 66%, wav2vec2 91%.
+
+The comparison that matters — same models on famous Speedom (9.0 syl/s,
+HIGHER rate than suno02's mean): large-v3 23%, turbo 21%, mlx-turbo 22%.
+On unseen lyrics at a comparable-or-lower rate, the same models score
+42-51%. **~20-25 WER points of v1's fast-tier "survival" was training-set
+familiarity, not transcription.** (Upper bound: the delta also includes
+Suno-vs-studio domain shift — voice, mix, AI pronunciation quirks. Needs
+more verses and a human-recorded control to decompose.)
+
+Consequences:
+- v1's golden standard (9.0 syl/s live) was set on memorized material.
+  On unseen lyrics, nothing survives even 8.4 mean. The honest current
+  answer to "can anything live-transcribe a chopper it hasn't heard
+  before?" is NO at any rate we've tested above baseline.
+- Model ranking survives (mlx-turbo still best, wav2vec2 still worst) —
+  contamination inflated everyone roughly together — but absolute
+  numbers from famous tracks should not be quoted as transcription
+  ability.
+- Next: formalize suno-01 (~5-6 syl/s) as the low-rung core segment to
+  find where unseen-lyrics survival actually begins; more verses/takes
+  to fill the ladder.
