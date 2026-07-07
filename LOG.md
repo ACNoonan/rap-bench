@@ -140,3 +140,32 @@ Open: can prompt engineering push Suno to 8+? If its ceiling is ~6.5
 native, options are (a) hybrid: small stretch (≤1.3×) on natively-rapped
 audio — partially reintroduces the stretch confound but on real flow;
 (b) Suno covers baseline/fast, obscure real choppers cover insane.
+
+## 2026-07-06 — Suno feasibility probe (takes 2-3): FEASIBLE
+
+Two more generations with speed-focused prompts:
+
+- **suno-02 (30s): the breakthrough.** Mean 8.4 syl/s, peak-5s 10.6 —
+  Godzilla-v3 pace — with verbatim adherence at the open ("Calibrated,
+  agitated, animated when I'm activated"). Both mlx-turbo and parakeet
+  degrade visibly mid-verse on it ("clickin' with the cataclysm scatter
+  pattern mapper data splatter") — real ASR-adversarial chopper audio
+  with zero training contamination. Suno CAN reach the insane tier;
+  speed is promptable.
+- **suno-03 (64s): total ASR whiteout.** whisper emits "currently" ×8
+  then a wall of Chinese characters; parakeet returns the empty string.
+  Needs one listen to adjudicate: mostly-instrumental dud take, or an
+  intelligible-to-humans take that zeroes every model (which would be
+  the most adversarial sample in the corpus). Do not use before human
+  adjudication.
+- Both models mishear the same word the same way ("adamant and" →
+  "Adam in and" / "Atom in and") — could be Suno's pronunciation, not
+  an ASR error. Ground truth for generated vocals must be what was
+  SUNG, not what was written: the read-along verification step stays.
+- Licensing note: free-tier Suno outputs are non-commercial-licensed;
+  distributing clips in the repo needs a ToS check (or a paid plan).
+
+**Decision: Suno is the core-tier engine.** Next: verify suno-02 by ear
+→ first core segment; generate more verses/takes at varied rates for
+the psychometric ladder; obscure real choppers remain an option for a
+memorization-probe tier rather than the core.
