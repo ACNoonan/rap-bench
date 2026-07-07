@@ -61,3 +61,42 @@ def max_live_rate(scores: list[SegmentScore]) -> float:
     real time. The crown: a nonzero value on the insane tier means this
     model can live-transcribe Eminem."""
     return max((s.syl_per_sec for s in scores if s.live), default=0.0)
+
+
+def critical_rate(
+    scores: list[SegmentScore], threshold: float = SURVIVAL_WER, live: bool = False
+) -> tuple[float, str]:
+    """Primary v2 metric (DESIGN.md): the interpolated syl/sec at which the
+    WER-vs-rate curve crosses `threshold`.
+
+    Robustness choices, made deliberately:
+    - Segments at the same rate are averaged into one point.
+    - The curve is made monotone with a running max (isotonic envelope):
+      once WER has exceeded the threshold at some rate, a lucky lower WER
+      at a higher rate doesn't restore credit. Conservative by design.
+    - With live=True, a segment slower than real time (RTF >= 1, or no
+      timing recorded) counts as a total live failure (WER treated as 1.0).
+
+    Returns (rate, qualifier): qualifier is "=" for an interpolated
+    crossing, "<" if even the slowest point fails (rate is that slowest
+    point), ">" if nothing fails (rate is the fastest point tested).
+    """
+    by_rate: dict[float, list[float]] = {}
+    for s in scores:
+        wer = s.wer
+        if live and not (s.rtf is not None and s.rtf < 1.0):
+            wer = 1.0
+        by_rate.setdefault(s.syl_per_sec, []).append(wer)
+    if not by_rate:
+        return 0.0, "<"
+    pts = sorted((r, sum(ws) / len(ws)) for r, ws in by_rate.items())
+    env, running = [], 0.0
+    for r, w in pts:
+        running = max(running, w)
+        env.append((r, running))
+    if env[0][1] >= threshold:
+        return env[0][0], "<"
+    for (r1, w1), (r2, w2) in zip(env, env[1:]):
+        if w1 < threshold <= w2:
+            return r1 + (threshold - w1) / (w2 - w1) * (r2 - r1), "="
+    return env[-1][0], ">"

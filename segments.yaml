@@ -16,6 +16,7 @@
 
 segments:
   - id: lose-yourself-v1
+    population: exhibition
     artist: Eminem
     track: Lose Yourself
     url: https://www.youtube.com/watch?v=zlJ0Aj9y67c
@@ -27,6 +28,7 @@ segments:
     lyrics_verified: true
 
   - id: the-way-i-am-v1
+    population: exhibition
     artist: Eminem
     track: The Way I Am
     url: https://www.youtube.com/watch?v=oLiZi2DWZnE
@@ -38,6 +40,7 @@ segments:
     lyrics_verified: true
 
   - id: look-at-me-now-busta
+    population: exhibition
     artist: Busta Rhymes
     track: "Look at Me Now (Chris Brown ft. Lil Wayne, Busta Rhymes)"
     lrclib: {artist: Chris Brown, track: Look at Me Now}
@@ -54,6 +57,7 @@ segments:
       consider a better source before trusting results on this segment.
 
   - id: speedom-em
+    population: exhibition
     artist: Eminem
     track: "Speedom (WWC2) (Tech N9ne ft. Eminem)"
     lrclib: {artist: Tech N9ne, track: Speedom}
@@ -66,6 +70,7 @@ segments:
     lyrics_verified: true
 
   - id: worldwide-choppers-twista
+    population: exhibition
     artist: Twista
     track: "Worldwide Choppers (Tech N9ne ft. Twista et al.)"
     lrclib: {artist: Tech N9ne, track: Worldwide Choppers}
@@ -78,6 +83,7 @@ segments:
     lyrics_verified: true
 
   - id: rap-god-fast
+    population: exhibition
     artist: Eminem
     track: Rap God
     url: https://www.youtube.com/watch?v=4sWKMo0UFrQ
@@ -90,6 +96,7 @@ segments:
     notes: The "supersonic speed" segment.
 
   - id: godzilla-v3
+    population: exhibition
     artist: Eminem
     track: Godzilla
     url: https://www.youtube.com/watch?v=9XvXF1LrWgA
@@ -102,6 +109,7 @@ segments:
     notes: Verse 3 — the Guinness-pace one.
 
   - id: synth01-acap-r5.0
+    population: deprecated-stretch
     artist: synthetic
     track: "verse-01 TTS acap @ 5.0 syl/s"
     url: null
@@ -114,6 +122,7 @@ segments:
     notes: synthetic tier (DESIGN.md) — exact ground truth by construction
 
   - id: synth01-beat-r5.0
+    population: deprecated-stretch
     artist: synthetic
     track: "verse-01 TTS beat @ 5.0 syl/s"
     url: null
@@ -126,6 +135,7 @@ segments:
     notes: synthetic tier (DESIGN.md) — exact ground truth by construction
 
   - id: synth01-acap-r6.5
+    population: deprecated-stretch
     artist: synthetic
     track: "verse-01 TTS acap @ 6.5 syl/s"
     url: null
@@ -138,6 +148,7 @@ segments:
     notes: synthetic tier (DESIGN.md) — exact ground truth by construction
 
   - id: synth01-beat-r6.5
+    population: deprecated-stretch
     artist: synthetic
     track: "verse-01 TTS beat @ 6.5 syl/s"
     url: null
@@ -150,6 +161,7 @@ segments:
     notes: synthetic tier (DESIGN.md) — exact ground truth by construction
 
   - id: synth01-acap-r8.0
+    population: deprecated-stretch
     artist: synthetic
     track: "verse-01 TTS acap @ 8.0 syl/s"
     url: null
@@ -162,6 +174,7 @@ segments:
     notes: synthetic tier (DESIGN.md) — exact ground truth by construction
 
   - id: synth01-beat-r8.0
+    population: deprecated-stretch
     artist: synthetic
     track: "verse-01 TTS beat @ 8.0 syl/s"
     url: null
@@ -174,6 +187,7 @@ segments:
     notes: synthetic tier (DESIGN.md) — exact ground truth by construction
 
   - id: synth01-acap-r9.5
+    population: deprecated-stretch
     artist: synthetic
     track: "verse-01 TTS acap @ 9.5 syl/s"
     url: null
@@ -186,6 +200,7 @@ segments:
     notes: synthetic tier (DESIGN.md) — exact ground truth by construction
 
   - id: synth01-beat-r9.5
+    population: deprecated-stretch
     artist: synthetic
     track: "verse-01 TTS beat @ 9.5 syl/s"
     url: null
@@ -198,6 +213,7 @@ segments:
     notes: synthetic tier (DESIGN.md) — exact ground truth by construction
 
   - id: synth01-acap-r11.0
+    population: deprecated-stretch
     artist: synthetic
     track: "verse-01 TTS acap @ 11.0 syl/s"
     url: null
@@ -210,6 +226,7 @@ segments:
     notes: synthetic tier (DESIGN.md) — exact ground truth by construction
 
   - id: synth01-beat-r11.0
+    population: deprecated-stretch
     artist: synthetic
     track: "verse-01 TTS beat @ 11.0 syl/s"
     url: null
@@ -222,6 +239,7 @@ segments:
     notes: synthetic tier (DESIGN.md) — exact ground truth by construction
 
   - id: suno02
+    population: core
     artist: "synthetic (Suno)"
     track: "Syllable Centrifuge take 2 — first core-tier chopper"
     url: null

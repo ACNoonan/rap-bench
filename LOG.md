@@ -312,3 +312,29 @@ live WER):
 - *parakeet speedom 80% came with 306 commits vs ~220 ref words — some
   may be commit-protocol insertions on the dense mix rather than pure
   mishearing; commit-protocol noise is itself a streaming-eval finding.
+
+## 2026-07-07 — critical rate finally implemented (it was design-only)
+
+DESIGN.md defined the v2 metrics; the scoring code still did flat binary
+survival. Now implemented: `critical_rate()` — interpolated syl/sec where
+WER crosses the threshold, on an isotonic envelope (running-max WER, so a
+lucky low WER above an earlier failure doesn't restore credit), segments
+at equal rates averaged, live variant treats RTF ≥ 1 as total failure.
+Populations scored separately (exhibition vs core; deprecated-stretch
+excluded); manifest entries now carry a `population:` field.
+
+Effects vs the old max-clean-rate metric:
+- large-v3 raw: was "10.0" (Choppers happened to survive), now 9.2 — the
+  envelope holds its Rap God failure (28% at 9.6) against it. The old
+  metric rewarded exactly the n=1 luck the redesign was about.
+- Exhibition leaderboard: large-v3-vocals 9.7 > large-v3 9.2 > mlx-turbo
+  9.1 > turbo 9.0 >> parakeet 7.6 >> tiny/moonshine/wav2vec2 <5.5.
+- Core: every model "<8.4" — the core population has one rate point
+  (suno02), so critical rates are unresolved-below. The metric surfaces
+  the data gap directly: we need core segments at lower rates
+  (formalize suno-01 at ~5, suno-03 pending transcription) to see where
+  unseen-lyrics survival begins.
+
+Still design-only from DESIGN.md: RTF as median of ≥3 timing runs;
+bootstrap CIs; memorization delta as a computed stat (needs matched-rate
+exhibition/core pairs — currently hand-read).
