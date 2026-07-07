@@ -246,3 +246,35 @@ on suno02:
 - Artifact: synthetic/suno02-livecaption.mp4 — the sustained config's
   captions burned over the audio, i.e. exactly what a livestream would
   have shown.
+
+## 2026-07-07 — parakeet native streaming wired up: fast enough, not accurate enough
+
+Fixed the earlier 254% "WER" — two bugs in OUR harness, not the model:
+parakeet emits SUBWORD tokens (' C','al','ib') which we were joining with
+spaces (turning "Calibrated" into four words), and tokens near the live
+edge get revised as right-context arrives, defeating timestamp-based
+dedup. Fix: index-based commits of the stable region (older than guard),
+text joined without injected spaces, words regrouped on leading-space
+boundaries.
+
+Native-stream results on suno02 (transcribe_stream, context 256/256):
+- hop 0.5s: unsustainable — per-add_audio cost is ~0.45s FIXED regardless
+  of chunk size (graph-eval overhead, not audio-proportional) → 27/62
+  overruns, 5.5s worst lag.
+- **hop 1.0s: sustained.** Zero overruns, 0.78s worst lag, ~2.3s
+  end-to-end caption delay. Live WER 71%.
+- depth 2 vs 8 vs 24: identical WER (71%) and latency — the streaming
+  accuracy penalty is the local attention itself, not cache exactness.
+
+**Live-crown standings on unseen-chopper audio (suno02, 8.4 syl/s):**
+| pipeline | sustained? | delay | live WER |
+|---|---|---|---|
+| mlx-whisper turbo, temp0, 2s hop | yes | ~2.6s | **58%** |
+| parakeet-native, 1s hop | yes | ~2.3s | 71% |
+| mlx-whisper naive word-ts | no (55s behind) | — | 57% |
+
+Whisper keeps the live crown; parakeet streams more cheaply but hears
+worse. Both are far above the 25% survival line: live captioning of
+unseen fast rap remains open. Lesson for the harness: streaming
+evaluation needs its own commit protocol per architecture — subword vs
+word units and tail-revision behavior are model-specific.

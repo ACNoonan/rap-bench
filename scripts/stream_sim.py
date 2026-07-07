@@ -55,7 +55,39 @@ def fmt_ts(t: float) -> str:
 
 
 def make_decoder(args):
-    """Returns decode(chunk, ws) -> list of {w, start, end} in absolute secs."""
+    """Returns decode(chunk, ws) -> list of {w, start, end} in absolute secs.
+
+    For the stateful parakeet-native backend, chunk is only the NEW audio
+    (one hop) and the returned list is ALL tokens decoded so far — the
+    stream object carries encoder cache and decoder state across calls.
+    """
+    if args.backend == "parakeet-native":
+        import mlx.core as mx
+        import numpy as np
+        from parakeet_mlx import from_pretrained
+
+        model = from_pretrained("mlx-community/parakeet-tdt-0.6b-v2")
+        # warm up Metal kernels on a throwaway transcribe, NOT on the stream
+        with tempfile.NamedTemporaryFile(suffix=".wav") as f:
+            with wave.open(f.name, "wb") as w:
+                w.setnchannels(1); w.setsampwidth(2); w.setframerate(SR)
+                w.writeframes(np.zeros(SR, dtype=np.int16).tobytes())
+            model.transcribe(f.name)
+        stream = model.transcribe_stream(context_size=(256, 256), depth=args.depth)
+        stream.__enter__()
+
+        def decode(chunk, ws):
+            stream.add_audio(mx.array(chunk))
+            out = []
+            for sent in stream.result.sentences:
+                for tok in sent.tokens:
+                    out.append({"w": tok.text.strip(), "start": tok.start,
+                                "end": tok.start + tok.duration,
+                                "_new_word": tok.text.startswith(" ")})
+            return out
+
+        return decode
+
     if args.backend == "parakeet":
         from parakeet_mlx import from_pretrained
 
@@ -118,19 +150,22 @@ def main() -> None:
     p.add_argument("--window", type=float, default=8.0)
     p.add_argument("--guard", type=float, default=1.5)
     p.add_argument("--fast", action="store_true")
-    p.add_argument("--backend", choices=["mlx", "parakeet"], default="mlx")
+    p.add_argument("--depth", type=int, default=2, help="parakeet-native: encoder layers with exact KV cache")
+    p.add_argument("--backend", choices=["mlx", "parakeet", "parakeet-native"], default="mlx")
     args = p.parse_args()
 
     audio = load_audio(args.wav)
     dur = len(audio) / SR
     decode = make_decoder(args)
+    stateful = args.backend == "parakeet-native"
 
     committed, committed_until = [], 0.0
+    n_committed = 0  # stateful backends: index into the stable token stream
     latencies, lags = [], []
     clock = 0.0
     t = args.hop
     while t <= dur + 1e-9:
-        ws = max(0.0, t - args.window)
+        ws = t - args.hop if stateful else max(0.0, t - args.window)
         chunk = audio[int(ws * SR): int(t * SR)]
         t0 = time.perf_counter()
         items = decode(chunk, ws)
@@ -138,11 +173,34 @@ def main() -> None:
         latencies.append(elapsed)
         clock = max(clock, t) + elapsed
         lags.append(clock - t)
-        for it in items:
-            if it["end"] <= t - args.guard and it["start"] >= committed_until - 0.05:
-                committed.append(it)
-                committed_until = max(committed_until, it["end"])
+        if stateful:
+            # items = ALL subword tokens so far; the tail (< guard old) is
+            # still being revised, the prefix is stable. Commit by index.
+            stable = [it for it in items if it["end"] <= t - args.guard]
+            committed.extend(stable[n_committed:])
+            n_committed = len(stable)
+        else:
+            for it in items:
+                if it["end"] <= t - args.guard and it["start"] >= committed_until - 0.05:
+                    committed.append(it)
+                    committed_until = max(committed_until, it["end"])
         t += args.hop
+
+    if stateful:
+        # regroup subword tokens into words on leading-space boundaries so
+        # WER and SRT cues operate on words, text joined WITHOUT extra spaces
+        words, cur = [], None
+        for tok in committed:
+            if cur is None or tok["_new_word"]:
+                if cur:
+                    words.append(cur)
+                cur = dict(tok)
+            else:
+                cur["w"] += tok["w"]
+                cur["end"] = tok["end"]
+        if cur:
+            words.append(cur)
+        committed = words
 
     lat = sorted(latencies)
     tag = args.backend + ("-fast" if args.fast else "")
