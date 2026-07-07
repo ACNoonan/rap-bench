@@ -214,3 +214,35 @@ Consequences:
 - Next: formalize suno-01 (~5-6 syl/s) as the low-rung core segment to
   find where unseen-lyrics survival actually begins; more verses/takes
   to fill the ladder.
+
+## 2026-07-07 — streaming simulation: batch RTF wildly overstates liveability
+
+Built scripts/stream_sim.py: audio arrives in real time, sliding-window
+re-decode every hop, words/segments commit once GUARD behind the live
+edge, decodes run serially so overruns become caption lag. Three configs
+on suno02:
+
+| config | latency mean/max | worst lag | live WER |
+|---|---|---|---|
+| mlx-turbo, word-ts, full fallback, hop 0.5s | 1.38s / 8.67s | **55s** | 57% |
+| mlx-turbo, temp=0, segment commits, hop 2s | 0.49s / 0.63s | **0.63s** | 58% |
+| parakeet, hop 0.5s | 0.21s / 0.28s | 0.28s | (254%*) |
+
+- **Batch RTF 0.05 predicted 20× headroom; the naive streaming config
+  fell 55 SECONDS behind on a 31s clip.** Two causes: whisper pads every
+  window to 30s (62 overlapping decodes pay the full-window tax), and
+  temperature-fallback storms recur per window on hard audio (max 8.7s
+  for one 8s-window decode). Batch RTF is a throughput number; streaming
+  needs worst-case per-window latency.
+- Sustainable config exists: temp=0 + segment commits + 2s hop → zero
+  overruns, ~2.6s end-to-end caption delay (guard 1.5 + decode 0.6),
+  at 58% WER. Live rap captions are FEASIBLE; correct ones are not.
+- Streaming degrades accuracy as predicted: 42% batch → 57-58% live
+  (lost right-context + boundary flicker).
+- *parakeet: fastest by far (max 0.28s/window) but our window-stitch
+  dedup produced 254% WER from duplicate commits — token timestamps
+  drift across overlapping windows. Needs its native streaming API
+  (transducers keep decode state), not window hacks. Marked future work.
+- Artifact: synthetic/suno02-livecaption.mp4 — the sustained config's
+  captions burned over the audio, i.e. exactly what a livestream would
+  have shown.
