@@ -1,0 +1,22 @@
+# Core-tier segment #1: Suno-generated chopper from original verse-01 lyrics.
+# Ground truth = what was SUNG, not what was written: Suno mispronounced
+# "adamant and" as something like "Adam and / Adam in an" (Adam N. by-ear
+# 2026-07-06, matching both ASR models' hearing). Remaining lines verified
+# verbatim-open via two-model ASR cross-check + syllable-count match; full
+# line-by-line read-along still worth doing before publishing numbers.
+Calibrated, agitated, animated when I'm activated,
+Adam and calculated, never gonna be assimilated.
+Rattling the catacombs, collecting what the cataclysm scattered,
+pattern-mapper, data splatter, chatter in the ladder of the algorithm.
+Verbal avalanche, I channel granite into gravel when I travel,
+battle-ready, petty rivals unravel when the gavel lands.
+Metronome demolisher, abolisher of obstacles,
+monological, illogical to copy me, impossible.
+Syllable centrifuge, spinning every sentence into triplicate,
+intricate, the ligaments are limber so I'm limitless.
+Diligent, the sentiment is militant, benevolent,
+elegant belligerence, delivering the evidence.
+Rapid-fire lexicon, the second one is heavier,
+readier and steadier, a predator, a renegade.
+Never need a breather 'cause the ether in my respirator
+regulates the meter like a metronome, an incubator.

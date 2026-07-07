@@ -169,3 +169,18 @@ Two more generations with speed-focused prompts:
 → first core segment; generate more verses/takes at varied rates for
 the psychometric ladder; obscure real choppers remain an option for a
 memorization-probe tier rather than the core.
+
+## 2026-07-06 — suno-03 adjudicated; suno-02 formalized as core segment #1
+
+Adam's listen: **suno-03 is intelligible-ish rapping that follows our
+lyrics** (with hooks and pauses between rap segments) — so the double
+ASR whiteout (whisper → Chinese characters; parakeet → empty string) is
+a REAL adversarial result on contamination-free audio, not a dud take.
+Most adversarial clip in the corpus; ground truth deferred (needs full
+by-ear transcription including Suno's invented hooks).
+
+Also confirmed by ear: Suno mispronounced "adamant and" (sounds like
+"Adam and / Adam in an") — both ASR models heard the same thing, i.e.
+they were RIGHT and the written lyrics were wrong. Locks in the
+sung-not-written ground-truth principle. suno02 formalized as core
+segment #1 (31.4s, mean 8.4 syl/s, peak 10.6) with sung-truth lyrics.

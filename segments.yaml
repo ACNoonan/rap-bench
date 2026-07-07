@@ -220,3 +220,18 @@ segments:
     timing_verified: true
     lyrics_verified: true
     notes: synthetic tier (DESIGN.md) — exact ground truth by construction
+
+  - id: suno02
+    artist: "synthetic (Suno)"
+    track: "Syllable Centrifuge take 2 — first core-tier chopper"
+    url: null
+    start: 0
+    end: 31.44
+    syl_per_sec: 8.4
+    tier: fast
+    timing_verified: true
+    lyrics_verified: true
+    notes: >
+      Contamination-free generated chopper (peak 10.6 syl/s in 5s window).
+      Ground truth is the sung rendition of synthetic/verse-01.txt
+      ("adamant" mispronounced, see lyrics file header).
