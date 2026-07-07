@@ -13,6 +13,7 @@ fetch = ["yt-dlp"]
 separate = ["demucs"]
 whisper = ["faster-whisper"]
 hf = ["transformers", "torch", "torchaudio"]
+mlx = ["mlx-whisper", "parakeet-mlx"]
 
 [tool.setuptools]
 packages = ["rapbench"]

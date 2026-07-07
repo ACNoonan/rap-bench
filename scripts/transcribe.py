@@ -11,6 +11,10 @@ Backends (install what you use):
     whisper:<size>          pip install openai-whisper
     hf:<model-id>           pip install transformers torch  (any HF ASR pipeline
                             model: distil-whisper, wav2vec2, moonshine, ...)
+    mlx-whisper:<hf-repo>   pip install mlx-whisper  (Apple-GPU whisper;
+                            default mlx-community/whisper-large-v3-turbo)
+    parakeet:<hf-repo>      pip install parakeet-mlx  (NVIDIA Parakeet on
+                            Apple GPU; default mlx-community/parakeet-tdt-0.6b-v2)
 
 Adding a backend (nemo/parakeet, kyutai, voxtral, your own service): write a
 load(variant) -> model and a transcribe(model, audio_path) -> str, register
@@ -65,10 +69,39 @@ def run_hf_pipeline(pipe, path: Path) -> str:
     return pipe(str(path), return_timestamps=True)["text"].strip()
 
 
+def load_mlx_whisper(variant: str):
+    import mlx_whisper
+    import numpy as np
+
+    repo = variant or "mlx-community/whisper-large-v3-turbo"
+    # Warm up so weight loading + Metal kernel compilation don't land in the
+    # first segment's timing.
+    mlx_whisper.transcribe(np.zeros(16000, dtype=np.float32), path_or_hf_repo=repo)
+    return repo
+
+
+def run_mlx_whisper(repo, path: Path) -> str:
+    import mlx_whisper
+
+    return mlx_whisper.transcribe(str(path), path_or_hf_repo=repo, language="en")["text"].strip()
+
+
+def load_parakeet(variant: str):
+    from parakeet_mlx import from_pretrained
+
+    return from_pretrained(variant or "mlx-community/parakeet-tdt-0.6b-v2")
+
+
+def run_parakeet(model, path: Path) -> str:
+    return model.transcribe(str(path)).text.strip()
+
+
 BACKENDS = {
     "faster-whisper": (load_faster_whisper, run_faster_whisper),
     "whisper": (load_openai_whisper, run_openai_whisper),
     "hf": (load_hf_pipeline, run_hf_pipeline),
+    "mlx-whisper": (load_mlx_whisper, run_mlx_whisper),
+    "parakeet": (load_parakeet, run_parakeet),
 }
 
 
