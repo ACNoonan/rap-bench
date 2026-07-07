@@ -222,3 +222,52 @@ is precisely why it was worth more than "Rap God."
 
 *Benchmark, methodology log, and all scripts: [repo link]. The livestream
 caption video is in the repo too. I still can't stop watching it.*
+
+## Appendix: can you read the memorization out of the weights?
+
+The WER deltas above are behavioral evidence. Could we demonstrate the
+memorization *in the model itself*? First, why dataset inspection is off
+the table: whisper's ~680k hours of web-scraped audio-text pairs (large-v3
+adds millions more pseudo-labeled) have never been published — there is no
+list to grep for "Rap God." Parakeet's training mix (Granary) is partially
+public, including the YouTube-derived sets that are its plausible leak
+path — partial openness that lines up neatly with its half-sized
+memorization delta. wav2vec2 is the clean pole: LibriSpeech/Libri-Light
+audiobooks, verifiably Eminem-free, which makes its catastrophic
+everywhere-failure a pure-acoustics control. (And a trap to note:
+distil-whisper's distillation data is published and open, but teacher
+knowledge passes through distillation — published data ≠ clean lineage.)
+
+So: membership inference. Three probes of whisper-turbo's decoder, audio
+ablated to silence, famous verses vs the synthetic verse as control.
+
+1. **Free-run**: silence plus an `initial_prompt` of a verse's opening
+   words. Does it complete the lyrics? **No.** It emits filler — "the the
+   the," a lone "you" — for Rap God and syllable-centrifuge alike. The
+   decoder does not rap unprompted.
+2. **Forced scoring, prompt-swap**: teacher-force the true continuation
+   over silence, under its real preceding words vs another verse's. The
+   matched-prompt lift was +0.16 nats/token for famous… and +0.12 for the
+   unseen control. Topical coherence, not recall. **Null.**
+3. **Absolute likelihood**: famous continuations score 4–9× higher per
+   token than the synthetic verse — *finally, the memorization!* Except:
+   GPT-2, scoring the same texts as a typicality control, shows a
+   **larger** gap than whisper does. The entire effect is "Eminem's
+   English is more typical than a verse engineered around the word
+   'monological.'" **Null again.**
+
+Which leaves a conclusion I didn't expect: whisper's lyric memorization is
+real (the benchmark measures it at ~3 syllables/second) but it is **not a
+free-standing text prior you can probe over silence.** It only manifests
+with audio in the loop — the prior seems to bias *perception*, pulling
+acoustically ambiguous frames toward memorized word sequences, rather than
+generating text on its own. The behavioral test wasn't the weaker
+fallback; it was the only test that could see the effect. A memorization
+that hides from direct probes is, itself, worth writing down.
+
+(Two caveats: GPT-2 has lyrics in its own training data, so the typicality
+control is conservative but impure — there is no clean reference LM for
+famous lyrics. And silence may simply suppress the decoder too hard; the
+untested stronger elicitation is feeding the matched *instrumental* — a
+demucs accompaniment stem — so the decoder gets rhythmic anchoring with no
+vocal evidence.)
