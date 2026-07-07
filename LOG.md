@@ -412,3 +412,44 @@ Granary mix is partially public incl. the YouTube-derived leak paths
 Eminem-free (LibriSpeech/Libri-Light) making its universal failure a
 pure-acoustics control; distil-whisper's published distillation data
 doesn't clean its lineage (teacher knowledge passes through).
+
+## 2026-07-07 — methodology audit of the membership-inference probes
+
+Literature check + self-audit before standing behind the appendix.
+
+**Literature says we did the right things, and anticipated our result:**
+- MIA on Large Audio Language Models (arXiv 2603.28378): membership
+  signals collapse to ~chance when audio-text pairing is disrupted via
+  silence/noise/resynthesis — "memorization is instance-specific and
+  cross-modal." Independently corroborates our conclusion that whisper's
+  lyric memorization needs audio in the loop. Also validates hygiene: on
+  contaminated eval sets, blind acoustic features alone hit 99.8 AUC —
+  naive famous-vs-unseen MIA is a domain classifier.
+- Duan et al. 2024 (Do MIAs Work on LLMs?): LLM MIAs ≈ random once
+  member/non-member distribution shift is controlled — our GPT-2
+  reference calibration (à la Carlini et al. 2021) was the correct
+  instinct.
+- Careless Whisper (Koenecke et al. 2024): silence/pauses trigger
+  generic hallucinations, matching our free-run filler exactly.
+
+**Self-audit found one real flaw — and fixing it changed a number:**
+The probe-3 comparison of whisper vs GPT-2 gaps used nats/TOKEN across
+two different tokenizers; rare words (our synthetic verse is full of
+them) tokenize differently per vocab, making per-token averages
+incomparable across models. Recomputed per WORD (same 40 words all
+conditions): whisper gap +3.89 nats/word vs GPT-2 +3.33 — an excess of
++0.56 nats/word, REVERSING the "fully explained by typicality" claim.
+However: per-verse excesses overlap between famous (-0.41..-1.21) and
+control (-1.14..-1.57) ranges, n=4 vs 2, rough Welch t≈2.0 → not
+significant; and cross-capability reference calibration is itself a
+known weak point. Corrected verdict for probe 3: "no reliable
+weights-level signal either way; weakly suggestive excess" — NOT
+"explained away."
+
+**What survives unchanged:** probes 1-2 (free-run, prompt-swap lift) are
+within-model, single-tokenizer designs — their nulls stand. The overall
+appendix conclusion softens from "the memorization is not in the naked
+decoder" to "we cannot demonstrate it in the naked decoder" — which the
+audio-MIA literature independently supports as the expected locus
+(cross-modal binding). Behavioral matched-domain WER deltas remain the
+demonstration.
