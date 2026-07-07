@@ -1,289 +1,220 @@
-# MMLU: Marshall Mathers Lyrical Understanding
+# Can Whisper transcribe "Rap God"?
 
-*Or: I built a joke benchmark to see if Whisper could transcribe "Rap God,"
-and it turned out the models had memorized the answers.*
+Someone posted that their local dictation setup hits 527.9 tokens per second
+at 2.5% word error rate. This is a genuinely impressive number, and my first
+thought on reading it was: transcribing *what*? Nobody dictates at 527
+tokens per second. The fastest speech a human being has ever produced under
+studio conditions is a rapper, and the word error rates on *that* are not
+in anyone's marketing material.
 
-## The tweet
+So I built the benchmark. Seven segments of commercially released fast rap,
+tiered by syllable rate: "Lose Yourself" at a comfortable 5.5 syllables per
+second, up through Busta Rhymes and Tech N9ne, to the supersonic bit of
+"Rap God" (9.6) and the third verse of "Godzilla" (10.6, the Guinness
+record). Hand-verified lyrics, a WER normalizer that treats ad-libs as
+optional, and one headline stat I'll call the **live rate**: the fastest
+verse a model transcribes at under 25% WER *while generating tokens faster
+than the rapper emits them*. I called the project MMLU — Marshall Mathers
+Lyrical Understanding — and expected to get an afternoon of entertainment
+out of it.
 
-Someone on X posted that they'd gotten local dictation running at **527.9
-tokens/second** with ~2.5% word error rate on a MacBook. Impressive number.
-But 2.5% WER on *what*? Dictation benchmarks are people speaking clearly, at
-comfortable speed, into good microphones.
+I got that. I also got a memorization scandal, a failed experiment I'm
+fonder of than most successful ones, and a video of a language model
+confidently captioning nonsense at ten syllables per second.
 
-I wanted to know what happens at the other end of the difficulty axis. The
-fastest verified rap verses run over **10 syllables per second** — Eminem's
-third verse on "Godzilla" holds the Guinness record pace — layered over a
-produced mix that actively fights the vocal. So I built a benchmark:
-open-source ASR models versus fast rap, tiered from "Lose Yourself" (~5.5
-syl/s) up through the supersonic section of "Rap God" (9.6) to "Godzilla"
-verse 3 (10.6).
+## Round one
 
-One evening of setup: seven segments with hand-verified lyrics, a
-lyrics-aware WER normalizer (ad-libs in parens score as optional, censoring
-normalized, following the [Jam-ALT](https://audioshake.github.io/jam-alt/)
-benchmark's lead), and a golden-standard metric with a bit of showmanship to
-it — **max live rate**: the fastest verse a model transcribes accurately
-*while generating tokens faster than the rapper spits them* (real-time
-factor < 1). Could your dictation model caption the song live?
+I ran eleven configurations across seven open-source model families —
+whisper in five sizes, Apple-GPU whisper via MLX, NVIDIA's Parakeet,
+moonshine, wav2vec2 — on raw tracks and on demucs-separated vocal stems.
 
-## Round one: the wall at 9.6
+Nothing survived the top tier. The live rate maxed out at 9.0 syllables per
+second, a three-way tie between whisper large-v3 and two turbo variants.
+More interesting than the scores was *how* models die, because they don't
+die the same way:
 
-Eleven configurations across seven model families (whisper large-v3 / turbo
-/ small / tiny / distil, mlx-whisper on Apple GPU, NVIDIA Parakeet,
-moonshine, wav2vec2). Highlights:
+- whisper-tiny returned a **literally empty file** for "Rap God." Whisper
+  has internal checks that suppress output when it decides audio isn't
+  speech; the fastest verified rapping alive apparently isn't speech. Note
+  this failure mode is silent — in a product, your captions just stop.
+- wav2vec2, which has no language model to lean on, decayed into honest
+  garbage: `THE OTON NOW IT OPO O OO NATATSOE`. You can *see* it failing,
+  which I'll defend as a feature.
+- moonshine failed fluent: grammatical, confident, wrong ("Time's up, over
+  plow"). Undetectable without ground truth, which makes it the worst
+  failure of the three, and it looks the best.
 
-- **Nothing survived the insane tier.** The golden standard topped out at
-  9.0 syl/s — a three-way tie between large-v3, turbo, and mlx large-v3-turbo
-  on Tech N9ne's "Speedom" (Eminem's verse).
-- **Models die in genre-specific ways.** whisper-tiny returned a literally
-  empty file for "Rap God" — its anti-hallucination checks decided the
-  fastest rapping alive "wasn't speech" and silently gave up. wav2vec2 (CTC,
-  no language model) decayed into honest phoneme soup: `THE OTON NOW IT OPO
-  O OO NATATSOE`. moonshine stayed perfectly fluent and confidently wrong —
-  the most dangerous failure of the three, because you can't detect it
-  without ground truth.
-- **Difficulty multiplies latency.** large-v3's real-time factor went from
-  0.63 on mid-tempo verses to **3.09** on "Rap God" — dense syllables mean
-  more tokens per second of audio, and when whisper's quality checks fail it
-  re-decodes at escalating temperatures, up to five retries. Hard audio
-  costs 5× more compute. Throughput measured on easy audio tells you nothing
-  about the adversarial regime — which is the polite version of my reply to
-  that tweet.
-- **Clean-speech leaderboards don't transfer.** Parakeet tops the Hugging
-  Face Open ASR Leaderboard and was the fastest model I tested (RTF 0.02,
-  flat, because transducers have no retry loop). It folded at the fast tier
-  anyway. Leaderboards measure distribution match, not robustness.
+Also worth knowing: whisper large-v3's real-time factor went from 0.63 on
+mid-tempo verses to **3.09 on "Rap God."** Hard audio makes it *slower* —
+more tokens per second of audio, plus a fallback mechanism that re-decodes
+failing windows at up to five escalating temperatures. Dense syllables are
+a compute multiplier. Keep this in mind whenever someone quotes you a
+tokens-per-second figure measured on podcast audio.
 
-Fun results. Then I looked closer at one transcript and the project changed.
+## It works too well
 
-## The tell
+Here's the thing that stopped me. large-v3's transcript of Godzilla verse 3
+— 10.6 syllables per second, through a full mix — was nearly word-perfect:
 
-large-v3's transcript of Godzilla verse 3 — the Guinness-pace one — was
-*nearly word-perfect*. At 10.6 syllables per second, through a full mix. I
-don't believe any acoustic model can do that, and it turns out it doesn't
-have to: those lyrics saturate the training data. Genius, lyric sites,
-karaoke captions, YouTube transcripts. The decoder isn't hearing "I'm
-undebatable, I'm unavoidable" — it's *remembering* it, with the audio as a
-prompt.
+> "...every bit of me is the epitome of a spitter when I'm in the vicinity...
+> I'm unfadable, you wanna battle, I'm available, I'm blowin' up like an
+> inflatable..."
 
-The smoking gun came from moonshine, the weakest whisper-style model: it
-butchered everything except exactly one line, which it transcribed
-verbatim — *"mom's spaghetti."* The most memed lyric in hip-hop history was
-the one line it "heard" perfectly.
+I don't believe any acoustic system can do that, and it doesn't have to.
+These lyrics are all over the training data — lyric sites, karaoke videos,
+YouTube captions. The decoder isn't hearing "I'm undebatable, I'm
+unavoidable." It's *remembering* it, with the audio as a retrieval cue.
 
-So the benchmark wasn't measuring transcription. It was measuring
-transcription *plus recall*, inseparably. And this isn't a rap problem: any
-ASR eval built on famous audio — audiobooks, TED talks, podcasts — has the
-same issue. For music there's a particularly nasty bind: **the ground truth
-you can get is exactly the ground truth models trained on.** If lyrics are
-indexed enough for you to verify, they were indexed enough to be scraped.
-Obscurity only shrinks the contamination; it can't zero it, and it costs you
-your reference lyrics in the bargain.
+The tell came from moonshine, the weakest model in the roster. It butchered
+"Lose Yourself" — except for one line, which it transcribed verbatim:
+*mom's spaghetti*. The single most memed lyric in hip-hop was the one thing
+it "heard" perfectly.
 
-## The fix that failed first
+## You might reasonably object
 
-The clean escape is audio that has never existed before. Attempt one: write
-an original chopper-style verse (dense multisyllabic internal rhyme, in the
-Tech N9ne register — checked for n-gram overlap against real lyrics so the
-LLM didn't smuggle in memorized bars), render it with TTS, and time-stretch
-it to each target syllable rate. Perfect ground truth by construction, a
-continuous difficulty dial, no copyright, fully distributable. Beautiful
-design.
+*Maybe rap over a beat is just hard, and famous verses are where the models
+happen to do well for boring acoustic reasons.* Fair. To answer that you
+need fast rap the models have never heard, with ground truth you trust —
+and for real music those two requirements fight each other. If a song's
+lyrics are indexed well enough for you to verify, they were indexed well
+enough to be scraped. **For real recordings, verifiable ground truth and
+training contamination are the same variable.** Obscurity shrinks the
+problem; it can't zero it.
 
-It failed in the most instructive way possible. Whisper stayed flat at 5–8%
-WER all the way to 11 syllables per second — a rate where it scores 39% on
-real Eminem. **Pitch-preserving time-stretch produces slow speech played
-fast, not fast speech.** When a human actually raps at 10 syl/s,
-articulation degrades: vowels reduce, consonants blur, coarticulation smears
-word boundaries. That *reduction* is what makes fast rap hard — and
-time-stretch preserves the TTS render's careful slow-speech articulation
-perfectly. I'd built a difficulty dial that turned the pace without turning
-the difficulty.
+So: manufacture the audio. I wrote an original chopper verse — dense
+multisyllabic internal rhyme in the Tech N9ne register, checked for n-gram
+overlap against real lyrics so the LLM that helped write it couldn't
+smuggle in memorized bars — and had Suno sing it.
 
-## The fix that worked
+(My first attempt was cleverer and it failed completely: render the verse
+with TTS, then time-stretch it to each target syllable rate. Perfect
+experimental control, and it measured nothing — whisper cruised at 5–8%
+WER up to 11 syllables per second, a rate where real Eminem puts it at
+39%. Pitch-preserving time-stretch gives you *slow speech played fast*.
+Actual fast speech degrades articulation — vowels reduce, consonants blur
+into each other — and that degradation, not the pace, is the difficulty.
+I'd built a difficulty dial that didn't dial difficulty.)
 
-Attempt two: feed the same original verse to a music-generation model
-(Suno) with a chopper-style prompt. Take two came back at a **peak of 10.6
-syllables per second** — Godzilla pace — singing my lyrics nearly verbatim
-over a real produced mix. Contamination-free, hard-for-the-right-reasons,
-and the ground-truth labor collapses to one read-along listen.
-
-Two delightful things happened during verification. First, both ASR models
-misheard "adamant and" the same way — because Suno actually mispronounced
-it. The models were right; my written lyrics were wrong. Ground truth for
-generated vocals has to be *what was sung, not what was written*. Second,
-another Suno take drove whisper into emitting a wall of **Chinese
-characters** while Parakeet returned an empty string — on audio a human can
-follow. No training data to lean on, no memorized continuation to surf:
-pure acoustic failure, of a kind the famous tracks never once produced.
+Suno, on a speed-focused prompt, came back rapping my verse at a peak of
+**10.6 syllables per second** — Godzilla pace — nearly verbatim. During
+verification both ASR models "misheard" one word the same way, which
+turned out to be because Suno mispronounced it: the models transcribed
+what was sung more faithfully than my own reference did. Ground truth for
+generated vocals is what was *sung*, not what was written.
 
 ## The reckoning
 
-Full model roster against the unseen chopper at a *mean* of 8.4 syl/s —
-slower than the "Speedom" verse several models had survived:
+Full roster against the unseen verse, mean 8.4 syllables per second —
+*slower* than a famous verse several models had already survived:
 
 | model | unseen verse (8.4 syl/s) | famous "Speedom" (9.0 syl/s) |
 |---|---|---|
-| mlx large-v3-turbo | **42%** | 22% |
-| whisper turbo | **44%** | 21% |
-| whisper large-v3 | **51%** | 23% |
+| mlx large-v3-turbo | 42% | 22% |
+| whisper turbo | 44% | 21% |
+| whisper large-v3 | 51% | 23% |
 | parakeet | 55% | 33% |
 
-Every model dead, by a huge margin, on material it couldn't have memorized.
-Roughly **20 points of WER on the famous tracks was recall**, not hearing.
+Everything died, by roughly twenty points of WER against material it
+couldn't have memorized.
 
-With a second synthetic segment at 4.9 syl/s (same generated voice, same
-production — so the domain is held constant and only the rate moves), the
-psychometric curves resolve, and with them a metric I'd designed but not
-yet earned: **critical rate**, the interpolated syllable rate where a
-model's WER crosses 25%. Two numbers per model — one on famous material,
-one on unseen — and their difference is the memorization, denominated in
-syllables per second:
+*Second reasonable objection: maybe AI-generated vocals are just weird for
+ASR.* Also testable: a second segment from the same generation session —
+same voice, same production, at an easy 4.9 syllables per second — scored
+10–17% for the strong models. Unseen synthetic vocals are fine. Within an
+identical domain, moving 4.9 → 8.4 syl/s takes large-v3 from 10% to 51%.
+It's the rate.
 
-| model | unseen critical rate | famous critical rate | memorization delta |
+With two rate points per model I could compute the statistic this whole
+project had been circling: the syllable rate at which each model's WER
+curve crosses 25%, on famous material versus unseen material. The
+difference between those two numbers is the memorization, in physical
+units:
+
+| model | unseen | famous | memorization |
 |---|---|---|---|
-| whisper large-v3 | 6.2 | 9.2 | **3.0** |
-| mlx large-v3-turbo | 6.2 | 9.1 | 2.9 |
+| whisper large-v3 | 6.2 | 9.2 | **3.0 syl/s** |
 | whisper turbo | 6.1 | 9.0 | 2.9 |
 | parakeet | 6.0 | 7.6 | **1.6** |
 
-Two findings in one table. **The real ceiling for open-source ASR on fast
-rap it hasn't heard before is about 6 syllables per second** — barely above
-energetic conversation, nowhere near a chopper. And the memorization delta
-splits by training data exactly as you'd predict: whisper, trained on
-web-scraped audio soaked in music and lyric captions, carries about **twice
-the famous-track inflation of Parakeet**, which trained on clean speech.
-The models' training diets are legible in the gap.
+Two things fall out. **The honest ceiling for open-source ASR on fast rap
+it hasn't heard before is about six syllables per second** — energetic
+conversation pace, nowhere near a chopper. And the memorization splits by
+training data exactly as it should: whisper, trained on web scrape soaked
+in lyric captions, carries roughly *twice* the famous-track inflation of
+Parakeet, which trained mostly on clean speech corpora. You can read the
+training diet in the gap. (wav2vec2, whose LibriSpeech training set is
+public and verifiably Eminem-free, fails everything everywhere — a clean
+control: that's what zero recall actually looks like.)
 
-(Caveats, because they matter: one synthetic voice, two-point curves, and
-the unseen-vs-famous comparison still bundles any residual domain gap
-between Suno vocals and studio rap. The 4.9 syl/s segment scoring 10–17%
-kills the strong version of the domain-shift objection — same voice, easy
-rate, no problem — but a human-recorded original verse is the full
-control, and it's on the list.)
+## The livestream test
 
-## "But could it caption a livestream?"
-
-One more turn of the screw. Batch RTF says mlx-turbo processes audio at 20×
-real time — surely it could caption the rap live? I built the simulation:
-audio arrives in real time, sliding-window re-decode, words commit once
-they're old enough that later windows won't revise them, and decode
-overruns become caption lag, honestly accounted.
+Back to the original tweet, because "tokens per second" has one more lie
+in it. mlx-turbo transcribes these clips at 20× real time in batch, so
+surely it can caption the rap live? I simulated it properly: audio
+arriving in real time, sliding-window re-decode, words committed once old
+enough that later windows won't revise them, and decode overruns become
+caption lag, honestly accounted.
 
 The naive configuration fell **55 seconds behind on a 31-second song.**
-Whisper pads every window to 30 seconds, so overlapping re-decodes pay the
-full-window tax dozens of times, and those temperature-fallback storms
-recur *per window* on hard audio — one 8-second window took 8.7 seconds to
-decode. Batch RTF is a throughput number. Streaming lives and dies on
-worst-case per-window latency, and no spec sheet quotes it.
+Whisper pads every window to 30 seconds — so overlapping re-decodes pay
+the full-window cost dozens of times — and those temperature-fallback
+storms recur per window on hard audio. One 8-second window took 8.7
+seconds to decode. Batch throughput is simply not a liveness number;
+worst-case window latency is, and nobody publishes it.
 
-A sustainable configuration exists (fallback disabled, segment-level
-commits, 2-second hop): zero overruns, captions ~2.6s behind the rapper,
-at 58% WER — the accuracy cost of going live is another ~15 points on top
-of everything above. I rendered the video. The captions keep perfect pace
-and read like a ransom note: *"Metronomolish or abolish homological
-illogical,"* at ten syllables per second, forever.
+A sustainable configuration exists (fallback off, coarser commits, 2-second
+hop): zero overruns, captions ~2.6 seconds behind the rapper, 58% WER. I
+rendered the video. The captions keep perfect pace and read like a ransom
+note — *"Metronomolish or abolish homological illogical"* — at ten
+syllables per second, indefinitely.
 
-And the final reversal: wired up properly (Parakeet has a native streaming
-API — transducers carry decode state across chunks, no window hack), the
-model that *lost* everywhere in batch **beat whisper live on the easy
-tier** — 22% vs 34% on "Lose Yourself," the first and only configuration in
-the whole project to be simultaneously accurate and real-time on anything.
-Architecture built for streaming beats superior batch accuracy, right up
+The final twist came from wiring up Parakeet's native streaming API
+(transducers carry decode state across chunks; no window hack). Parakeet
+lost to whisper everywhere in batch — and **beat it live on the easy
+tier**, 22% vs 34% on "Lose Yourself," becoming the only configuration in
+the entire project that is simultaneously accurate and real-time on
+anything. Architecture built for streaming beats batch accuracy, right up
 until the acoustics get hard.
 
-## What I actually learned
+## Looking for the memorization in the weights
 
-1. **Tokens per second is the least interesting number in ASR.** Every
-   model I tested had compute headroom to burn on hard audio; not one had
-   the robustness. And the throughput number itself dissolves on contact
-   with streaming, where worst-case window latency rules.
-2. **Contamination isn't just an LLM problem.** ASR evals on famous audio
-   measure recall plus hearing, inseparably — and for music, verifiable
-   ground truth and training contamination are the same variable. Generated
-   audio is the clean escape, and it's cheap now.
-3. **You can measure what a model memorized, in physical units.** Famous
-   critical rate minus unseen critical rate: ~3 syl/s for whisper, ~1.6 for
-   Parakeet. The training data shows up in the gap.
-4. **Stimulus design is where benchmarks quietly go wrong.** My time-stretch
-   ladder was elegant, controlled, distributable — and measured nothing,
-   because sped-up slow speech lacks the articulatory reduction that makes
-   fast speech hard. The pilot that kills your clever mechanism is the
-   pilot working.
-5. **Metrics fail like models do.** My original pass/fail-at-25% metric
-   awarded survivals decided by two words of edge noise, and credited a
-   model for a lucky pass above a rate it had already failed. Interpolated
-   crossings on an isotonic envelope fixed both. If your metric can be
-   gamed by luck, n=1 will game it.
+If whisper memorized the lyrics, can you see it without any audio? I tried
+three probes on the decoder, ablating the audio to silence. Free-run
+completion from a verse's opening words: it emits filler — "the the
+the..." — never lyrics. Forced-scoring the true continuation under its
+real preceding words versus a wrong prompt: the lift is tiny and nearly
+identical for famous and unseen verses. Raw likelihoods: famous lyrics
+score far higher than my synthetic verse — but a reference LM shows
+almost the same gap, because Eminem's English is simply more typical than
+a verse built around the word "monological." After fixing a normalization
+bug (per-token comparisons across different tokenizers are invalid;
+per-word is the comparable unit) whisper keeps a small excess preference
+for famous lyrics, too noisy at this sample size to call.
 
-Total cost: one laptop, one evening plus a day, a Suno account, and a
-verse about a syllable centrifuge that no rapper has ever performed — which
-is precisely why it was worth more than "Rap God."
+So I can't find the memorization in the naked decoder, and it turns out
+that's the expected answer: a recent [membership-inference study of audio
+language models](https://arxiv.org/abs/2603.28378) found that membership
+signals collapse to chance when you disrupt the audio-text pairing with
+silence or noise — memorization in these models is *cross-modal binding*,
+not a text prior. ([Naive membership inference on LLMs mostly measures
+distribution shift anyway](https://arxiv.org/abs/2402.07841), which is
+exactly the trap the reference-model control caught here.) The lyric
+knowledge only activates with audio in the loop: a prior that biases
+*perception*, pulling acoustically ambiguous frames toward remembered
+word sequences. The behavioral test — matched-domain WER on verses that
+have never existed before — wasn't the fallback method. It was the only
+instrument that could see the effect.
 
-*Benchmark, methodology log, and all scripts: [repo link]. The livestream
-caption video is in the repo too. I still can't stop watching it.*
+## What this cost
 
-## Appendix: can you read the memorization out of the weights?
+One laptop, a weekend, a Suno account, and a verse about a syllable
+centrifuge that no human has ever performed — which is exactly why it was
+worth more to me than "Rap God."
 
-The WER deltas above are behavioral evidence. Could we demonstrate the
-memorization *in the model itself*? First, why dataset inspection is off
-the table: whisper's ~680k hours of web-scraped audio-text pairs (large-v3
-adds millions more pseudo-labeled) have never been published — there is no
-list to grep for "Rap God." Parakeet's training mix (Granary) is partially
-public, including the YouTube-derived sets that are its plausible leak
-path — partial openness that lines up neatly with its half-sized
-memorization delta. wav2vec2 is the clean pole: LibriSpeech/Libri-Light
-audiobooks, verifiably Eminem-free, which makes its catastrophic
-everywhere-failure a pure-acoustics control. (And a trap to note:
-distil-whisper's distillation data is published and open, but teacher
-knowledge passes through distillation — published data ≠ clean lineage.)
-
-So: membership inference. Three probes of whisper-turbo's decoder, audio
-ablated to silence, famous verses vs the synthetic verse as control.
-
-1. **Free-run**: silence plus an `initial_prompt` of a verse's opening
-   words. Does it complete the lyrics? **No.** It emits filler — "the the
-   the," a lone "you" — for Rap God and syllable-centrifuge alike. The
-   decoder does not rap unprompted.
-2. **Forced scoring, prompt-swap**: teacher-force the true continuation
-   over silence, under its real preceding words vs another verse's. The
-   matched-prompt lift was +0.16 nats/token for famous… and +0.12 for the
-   unseen control. Topical coherence, not recall. **Null.**
-3. **Absolute likelihood**: famous continuations score far higher than the
-   synthetic verse — *finally, the memorization!* Except most of it is
-   typicality: Eminem's English is simply more probable than a verse
-   engineered around the word "monological," and GPT-2 as a reference
-   model shows nearly the same gap. After fixing a subtle normalization
-   bug (comparing models per-*token* across different tokenizers is
-   invalid when one text is full of rare words; per-*word* is the
-   comparable unit), whisper retains a small excess preference for famous
-   lyrics over the reference — +0.56 nats/word — but the per-verse spread
-   overlaps between famous and control, so at this sample size it's
-   suggestive, not significant. **Unresolved, leaning null.**
-
-Which leaves a conclusion I didn't expect: whisper's lyric memorization is
-real (the benchmark measures it at ~3 syllables/second) but I could not
-demonstrate it as **a free-standing text prior probed over silence.** It
-manifests with audio in the loop — the prior biasing *perception*, pulling
-acoustically ambiguous frames toward memorized word sequences, rather than
-generating text on its own. And it turns out the literature predicts
-exactly this: a recent [membership-inference study of audio language
-models](https://arxiv.org/abs/2603.28378) found membership signals
-collapse to chance when the audio-text pairing is disrupted by silence,
-noise, or resynthesis — memorization in audio models is *cross-modal
-binding*, not a textual prior. Meanwhile [Duan et
-al.](https://arxiv.org/abs/2402.07841) show that naive LLM membership
-inference mostly measures distribution shift between member and non-member
-sets — which is precisely what the reference-model control caught here.
-The behavioral test wasn't the weaker fallback; it was the instrument that
-could see the effect.
-
-(Caveats: GPT-2 has lyrics in its own training data, so the typicality
-control is conservative but impure — no clean reference LM exists for
-famous lyrics; comparing calibration gaps across models of very different
-capability is itself shaky. And silence may simply suppress the decoder
-too hard — [whisper's silence behavior is generic
-hallucination](https://arxiv.org/abs/2402.08021), not recall — so the
-untested stronger elicitation is feeding the matched *instrumental*, a
-demucs accompaniment stem, giving the decoder rhythmic anchoring with no
-vocal evidence.)
+Whether anything can transcribe "Rap God": no. Not the real question
+anymore, though. The models that look like they can are reciting; the
+honest ceiling on unseen fast rap is about six syllables per second; and
+the one model that can caption *anything* accurately in real time is the
+one that loses every batch benchmark. All the scripts, the methodology log
+(including the dead ends), and the ransom-note video are in the repo:
+[link].
