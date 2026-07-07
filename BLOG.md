@@ -249,25 +249,41 @@ ablated to silence, famous verses vs the synthetic verse as control.
    over silence, under its real preceding words vs another verse's. The
    matched-prompt lift was +0.16 nats/token for famous… and +0.12 for the
    unseen control. Topical coherence, not recall. **Null.**
-3. **Absolute likelihood**: famous continuations score 4–9× higher per
-   token than the synthetic verse — *finally, the memorization!* Except:
-   GPT-2, scoring the same texts as a typicality control, shows a
-   **larger** gap than whisper does. The entire effect is "Eminem's
-   English is more typical than a verse engineered around the word
-   'monological.'" **Null again.**
+3. **Absolute likelihood**: famous continuations score far higher than the
+   synthetic verse — *finally, the memorization!* Except most of it is
+   typicality: Eminem's English is simply more probable than a verse
+   engineered around the word "monological," and GPT-2 as a reference
+   model shows nearly the same gap. After fixing a subtle normalization
+   bug (comparing models per-*token* across different tokenizers is
+   invalid when one text is full of rare words; per-*word* is the
+   comparable unit), whisper retains a small excess preference for famous
+   lyrics over the reference — +0.56 nats/word — but the per-verse spread
+   overlaps between famous and control, so at this sample size it's
+   suggestive, not significant. **Unresolved, leaning null.**
 
 Which leaves a conclusion I didn't expect: whisper's lyric memorization is
-real (the benchmark measures it at ~3 syllables/second) but it is **not a
-free-standing text prior you can probe over silence.** It only manifests
-with audio in the loop — the prior seems to bias *perception*, pulling
+real (the benchmark measures it at ~3 syllables/second) but I could not
+demonstrate it as **a free-standing text prior probed over silence.** It
+manifests with audio in the loop — the prior biasing *perception*, pulling
 acoustically ambiguous frames toward memorized word sequences, rather than
-generating text on its own. The behavioral test wasn't the weaker
-fallback; it was the only test that could see the effect. A memorization
-that hides from direct probes is, itself, worth writing down.
+generating text on its own. And it turns out the literature predicts
+exactly this: a recent [membership-inference study of audio language
+models](https://arxiv.org/abs/2603.28378) found membership signals
+collapse to chance when the audio-text pairing is disrupted by silence,
+noise, or resynthesis — memorization in audio models is *cross-modal
+binding*, not a textual prior. Meanwhile [Duan et
+al.](https://arxiv.org/abs/2402.07841) show that naive LLM membership
+inference mostly measures distribution shift between member and non-member
+sets — which is precisely what the reference-model control caught here.
+The behavioral test wasn't the weaker fallback; it was the instrument that
+could see the effect.
 
-(Two caveats: GPT-2 has lyrics in its own training data, so the typicality
-control is conservative but impure — there is no clean reference LM for
-famous lyrics. And silence may simply suppress the decoder too hard; the
-untested stronger elicitation is feeding the matched *instrumental* — a
-demucs accompaniment stem — so the decoder gets rhythmic anchoring with no
+(Caveats: GPT-2 has lyrics in its own training data, so the typicality
+control is conservative but impure — no clean reference LM exists for
+famous lyrics; comparing calibration gaps across models of very different
+capability is itself shaky. And silence may simply suppress the decoder
+too hard — [whisper's silence behavior is generic
+hallucination](https://arxiv.org/abs/2402.08021), not recall — so the
+untested stronger elicitation is feeding the matched *instrumental*, a
+demucs accompaniment stem, giving the decoder rhythmic anchoring with no
 vocal evidence.)
