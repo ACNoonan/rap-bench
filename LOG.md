@@ -370,3 +370,45 @@ the core low rung. With two rate points the core critical rates resolve:
   human read-along pending; cross-population delta still bundles any
   residual domain gap — matched human-recorded material would isolate
   it fully.
+
+## 2026-07-07 — membership-inference probe: the memorization is NOT in the naked decoder
+
+Appendix experiment (Adam's proposal): probe whisper's decoder prior
+directly, no dataset access needed. Three escalating probes on turbo:
+
+1. **Free-run completion** (silence/noise + initial_prompt = verse
+   opening): NULL. The decoder never continues lyrics without acoustic
+   evidence — it emits filler ("the the the...", "you") for famous and
+   synthetic prompts alike.
+2. **Forced-scoring prompt-swap lift** (teacher-force the true
+   continuation over silence, matched vs mismatched prompt): NULL.
+   Famous lift +0.161 nats/token ≈ control lift +0.124 — the small
+   matched-prompt advantage is topical coherence, present equally for
+   the unseen verse.
+3. **Absolute likelihood gap**: famous continuations −5.0 nats/token vs
+   synthetic −6.8 (4-9× per token) — looks like memorization, BUT the
+   GPT-2 typicality control shows a LARGER gap (+2.00 vs whisper's
+   +1.76) on the same texts. Fully explained by text typicality; no
+   whisper-specific excess.
+
+**Conclusion: whisper's lyric memorization does not manifest as a
+free-standing text prior probeable over silence. It only shows up with
+audio in the loop** — the prior biases perception (pulling acoustically
+ambiguous frames toward memorized word sequences) rather than acting as
+a standalone LM. The behavioral evidence (matched-domain WER deltas,
+famous vs synthetic) remains the strongest — and now the only —
+demonstration. A probe-resistant memorization is itself a finding.
+
+Caveats/future: GPT-2 is itself lyric-contaminated (WebText), so the
+typicality control is conservative but impure — no clean reference LM
+exists for famous lyrics. A stronger elicitation: use the matched
+instrumental (demucs accompaniment stem) instead of silence, giving the
+decoder rhythmic anchoring without vocal evidence. Untested.
+
+Dataset-lineage context (per model, for the appendix): whisper's data
+is unpublished (behavioral evidence is the ONLY option); parakeet's
+Granary mix is partially public incl. the YouTube-derived leak paths
+(consistent with its smaller 1.6 syl/s delta); wav2vec2 is verifiably
+Eminem-free (LibriSpeech/Libri-Light) making its universal failure a
+pure-acoustics control; distil-whisper's published distillation data
+doesn't clean its lineage (teacher knowledge passes through).
