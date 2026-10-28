@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Download and trim benchmark audio from the URLs in segments.yaml.
 
-The published repo ships no audio and no URLs — fill in `url:` for each
-segment with your own source, then:
+The repo ships no audio. Each segment's `url:` points at a public upload
+(official audio where one exists); swap in your own source if it's gone, then:
 
     python scripts/fetch.py            # all segments with a url
     python scripts/fetch.py rap-god-fast

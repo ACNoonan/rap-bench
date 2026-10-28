@@ -1,100 +1,140 @@
 # rap-bench
 
-**MMLU: Marshall Mathers Lyrical Understanding.**
+**MMLU: Marshall Mathers Lyrical Understanding.** How fast can a rapper go
+before open-source speech recognition falls apart?
 
-Local dictation models keep posting insane tokens/sec numbers at ~2.5% WER —
-on clean speech. This benchmark asks the question that actually matters:
-*can it transcribe "Rap God"?*
+Local dictation models post 2.5% word error rates on clean speech. rap-bench
+runs them on fast rap instead, from "Lose Yourself" at 5.5 syllables per
+second up to the third verse of "Godzilla" at 10.6, and reports where each
+model falls off the cliff.
 
-rap-bench scores open-source ASR models on a difficulty ladder of fast-rap
-excerpts, up to the Guinness-pace third verse of "Godzilla"
-(~10.6 syllables/sec). Two stats per model:
+Write-up: [Can Whisper transcribe "Rap God"?](https://adamnoonan-xyz.vercel.app/blog/rap-god/)
 
-- **max clean rate** — the fastest syllable rate it transcribes with WER
-  under 25%.
-- **max live rate** — the fastest syllable rate it transcribes accurately
-  *and* faster than real time (RTF < 1). This is the golden standard:
-  generating tokens at least as fast as the rapper spits them, i.e. the
-  model could live-transcribe the verse.
+## What it measures
 
-## Results
+- **Critical rate.** The syllable rate where a model's word error rate (WER)
+  crosses 25%, read off its WER-vs-rate curve. The curve is made monotone
+  first (an isotonic envelope), and the crossing is interpolated between the
+  two tested rates either side of it. `>x` means the model survived every
+  segment, `<x` means it failed the slowest one.
+- **Live critical rate.** The same, but a segment counts as failed if the
+  model transcribed it slower than real time (RTF ≥ 1). It answers whether
+  the model could caption the verse as it's being rapped.
+- **Confidence intervals.** `scripts/bootstrap_ci.py` resamples whole lyric
+  lines (errors come in runs, so resampling single words would make intervals
+  too narrow) and reports 95% intervals on WER, critical rate, and the gap
+  between populations.
 
-See [results/results.md](results/results.md).
+## Three populations
 
-## Design
+Famous tracks are in every model's training data, so a good score on them
+can be recall instead of hearing. Segments are scored in separate
+populations:
 
-- **Difficulty ladder, not just WER.** Segments are tiered
-  `baseline → fast → insane` by peak syllable rate
-  (see [segments.yaml](segments.yaml)). The leaderboard is about where each
-  model falls off the cliff.
-- **Speed counts.** `transcribe.py` times inference (model load excluded)
-  and `score.py` reports real-time factor per segment. Accuracy alone gets
-  you *max clean rate*; accuracy at RTF < 1 gets you *max live rate*.
-- **Raw mix vs. separated vocals.** Half of what kills ASR on rap is the beat,
-  not the speed. Every model runs twice — on the raw track and on
-  demucs-extracted vocal stems — turning that confound into a second axis.
-- **Lyric-aware normalization.** Naive WER punishes casing, punctuation,
-  ad-lib markers, and censoring. Both reference and hypothesis pass through
-  the same normalizer ([rapbench/normalize.py](rapbench/normalize.py)),
-  following the spirit of the [Jam-ALT](https://audioshake.github.io/jam-alt/)
-  lyrics-transcription benchmark.
-- **Contested ground truth.** Official lyrics often don't match what's
-  actually rapped in fast passages. References in `lyrics/` are hand-verified
-  by ear at 0.5× speed against the excerpt; the manifest tracks
-  `timing_verified` and `lyrics_verified` per segment, and the scorer skips
-  segments whose lyrics are still TODO.
+| population | what it is | n | status |
+|---|---|---|---|
+| exhibition | famous commercial tracks (Eminem, Twista, Busta Rhymes) | 7 | scored |
+| core | Suno-generated verses no model has seen | 2 | scored |
+| fresh | real tracks first released after 2025-06-01, after every model in the roster | 21 | transcribed, lyrics awaiting verification |
 
-## No audio in this repo
+The fresh tier is the clean test: human vocals, real production, and
+contamination ruled out by release date. Scores for it are withheld until
+the lyrics are hand-verified.
 
-The audio is commercially released music, so the repo ships **no audio and no
-stems** — only the harness, the segment manifest (timestamps plus links to
-public YouTube uploads, official where available), short lyric excerpts for
-scoring, and results. You fetch your own copies locally with
-`scripts/fetch.py`, or drop pre-trimmed 16 kHz mono WAVs into
-`audio/<id>.wav`. `audio/`, `stems/`, and `outputs/` are gitignored.
+## Findings so far
+
+- **Almost nothing transcribes the top tier.** Only whisper large-v3 on
+  demucs-separated vocals stays at or under 25% WER on both "Rap God" (9.6
+  syl/s, 22%) and "Godzilla" v3 (10.6, 25%), and it runs slower than real
+  time on both.
+- **Famous tracks look easier than they are, but by less than the first
+  analysis said.** On published rates, whisper large-v3 survives about 3
+  syl/s faster on famous tracks than on unseen ones. Two audits shrank that
+  ([LOG.md](LOG.md), 2026-10-28):
+  - The famous tracks' rates were peaks and the Suno verses' were means. On
+    mean rates for both, the large-v3 gap is +2.0 syl/s (95% CI −0.4 to +4.3).
+  - The Suno verses use rarer words (15.1% rare vs 6.5%). Adjusting for
+    vocabulary takes the gap to +1.6 (−0.8 to +4.1).
+
+  Every model's interval includes zero. The fresh tier is built to settle it.
+- **Fast and accurate rarely come together.** large-v3 is the most accurate
+  model on famous tracks but runs slower than real time on the hardest ones.
+  Parakeet runs 17–50× faster than real time and MLX whisper turbo 7–25×.
+
+Tables: [results/results.md](results/results.md) ·
+[results/ci-mean.md](results/ci-mean.md) ·
+[results/ci-mean-vocab.md](results/ci-mean-vocab.md). Design and
+pre-registered predictions: [DESIGN.md](DESIGN.md). Every run and dead end:
+[LOG.md](LOG.md).
+
+## No commercial audio in this repo
+
+The repo ships the harness, the segment manifest (timestamps plus links to
+public uploads, official audio where it exists), short lyric excerpts for
+scoring, and results. `scripts/fetch.py` downloads and trims your own local
+copies. `audio/`, `stems/` and `outputs/` are gitignored. The only audio
+committed is the synthetic material in `synthetic/`, which was generated for
+this project.
 
 ## Running it
 
-```bash
-pip install -e ".[fetch,separate,whisper,hf]"   # plus ffmpeg on PATH
+Python 3.10+ and ffmpeg on PATH.
 
-python scripts/fetch.py        # download + trim segments (needs url: filled in)
-python scripts/separate.py    # demucs vocal stems
+```bash
+uv venv && uv pip install -e ".[fetch,whisper,analysis,mlx]"
+# mlx is Apple silicon only; other extras: separate (demucs), hf (transformers)
+
+python scripts/fetch.py                       # download + trim to audio/<id>.wav
+python scripts/separate.py                    # optional: demucs vocal stems
 
 python scripts/transcribe.py --model faster-whisper:large-v3 --source raw
-python scripts/transcribe.py --model faster-whisper:large-v3 --source vocals
-python scripts/transcribe.py --model hf:distil-whisper/distil-large-v3 --source raw
+python scripts/transcribe.py --model parakeet:mlx-community/parakeet-tdt-0.6b-v2
 
-python scripts/score.py       # writes results/results.md
+python scripts/score.py                       # results/results.md
+python scripts/bootstrap_ci.py --rate mean    # results/ci-mean.md
+python scripts/bootstrap_ci.py --rate mean --adjust vocab
 ```
 
-Backends: `faster-whisper:<size>`, `whisper:<size>` (openai-whisper), and
-`hf:<model-id>` (anything the HF ASR pipeline loads — distil-whisper,
-wav2vec2, moonshine…). NVIDIA Parakeet/Canary, Kyutai STT, Voxtral, or your
-own dictation service: add a function to `BACKENDS` in
-[scripts/transcribe.py](scripts/transcribe.py).
+Backends: `faster-whisper:<size>`, `whisper:<size>` (openai-whisper),
+`hf:<model-id>` (anything the Hugging Face ASR pipeline loads),
+`mlx-whisper:<repo>` and `parakeet:<repo>`. To add another, add a load/run
+pair to `BACKENDS` in [scripts/transcribe.py](scripts/transcribe.py).
 
-## Roster
+## Scripts
 
-| tier | segment | ~syl/sec |
-|---|---|---|
-| baseline | Lose Yourself v1 · The Way I Am v1 | ~5.5 |
-| fast | Look at Me Now (Busta) · Speedom (Em) | 8–9 |
-| insane | Worldwide Choppers (Twista) · Rap God fast bit · Godzilla v3 | 9.6–10.6 |
+| script | does |
+|---|---|
+| `fetch.py` | downloads each segment's source and trims it to 16 kHz mono |
+| `separate.py` | demucs vocal stems, for the raw-vs-vocals comparison |
+| `transcribe.py` | runs a backend over the segments, timing inference |
+| `score.py` | WER, RTF and critical rates per population |
+| `bootstrap_ci.py` | line-level bootstrap intervals; `--rate mean`, `--adjust vocab` |
+| `draft_lyrics.py` | drafts reference lyrics from LRCLIB's synced lyrics |
+| `verify.sh` | tmux cockpit: clip on loop at 0.5× beside the lyric file |
+| `scout.py` | finds post-cutoff fast tracks (MusicBrainz + LRCLIB) |
+| `select_fresh.py` | turns scouted tracks into fresh segments |
+| `synth.py` | builds a speed-swept synthetic tier from a rendered verse |
+| `stream_sim.py` | simulates live captioning and measures caption lag |
+| `prior_probe.py`, `prior_logprob.py` | probe whisper's decoder for memorized lyrics |
 
-All timestamps verified by ear against the linked sources. Known issues:
+## Ground truth
 
-- The Look at Me Now rip (music video, no official audio exists) sounds
-  quiet and muddled — treat that segment's scores with suspicion until a
-  better source is found. Its sync stamps also don't match the album, so
-  LRCLIB drafts for it need manual re-windowing.
-- Clip boundaries don't land exactly on lyric-line boundaries; references
-  were hand-trimmed to match the audio, but expect a word or two of edge
-  noise (partial words at cut points) in absolute WER. It affects every
-  model identically, so rankings are unaffected.
-- RTF on `vocals` runs measures ASR inference only — demucs separation time
-  is not counted, so live-rate claims from separated-vocals runs are
-  optimistic about a true live pipeline.
+Official lyrics often don't match what's rapped in fast passages. Every
+reference in `lyrics/` is checked by ear at 0.5× against its clip. A lyric
+file containing `TODO` is a draft, and the scorer skips it. Reference and
+transcript both go through the same normalizer
+([rapbench/normalize.py](rapbench/normalize.py)), which ignores casing,
+punctuation and censoring and treats ad-libs as optional, in the spirit of
+[Jam-ALT](https://audioshake.github.io/jam-alt/).
 
-Contributions of verified segments welcome — especially non-Eminem choppers
-(Tech N9ne, Krayzie Bone, Daveed Diggs…) and non-English fast rap.
+Known issues:
+
+- The "Look at Me Now" source is a music-video rip and sounds muddy. Treat
+  its scores with suspicion.
+- Clip edges cut a word or two mid-syllable. That noise hits every model
+  equally, so it doesn't change rankings.
+- RTF on separated-vocals runs excludes demucs time, so live rates from
+  those runs are optimistic.
+
+Verified segments are welcome, especially fast rap from after mid-2025 and
+fast rap in languages other than English.
