@@ -8,3 +8,6 @@ __pycache__/
 *.egg-info/
 .venv/
 .DS_Store
+
+# v4 training set: whole-song audio and lyrics, local + GPU box only
+train/
