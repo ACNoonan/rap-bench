@@ -162,11 +162,116 @@ Adam, in this order:
 3. **suno01 read-along**, the open v2 item.
 4. Then: `python scripts/score.py`, `python scripts/bootstrap_ci.py --rate mean`.
    The mean-rate run re-measures every rate from the verified lyrics.
-5. Decide the repo link: github.com/ACNoonan/rap-bench is private and the
-   post links it. Going public needs `audio/`, `stems/` and `outputs/`
-   kept out (already gitignored) and a look at the lyric excerpts.
+5. ~~Decide the repo link~~: public since 2026-10-28, MIT for the code.
 
 Run the vocabulary-adjusted table too: `bootstrap_ci.py --rate mean
 --adjust vocab` → results/ci-mean-vocab.md (built 2026-10-28, LOG.md).
 
-Still open after that: a fresh segment in the 9–10 syl/s gap.
+The 9–10 syl/s gap stays open: 54 artists scouted, no post-cutoff track
+holds 9+ for 25 s besides TITANIC (LOG.md, 2026-10-28).
+
+
+# v4: fine-tuning for fast rap (draft, 2026-10-28)
+
+Not started. Blocked on v3: the verified fresh tier is the baseline every
+fine-tune is measured against.
+
+## Question
+
+Can a cheap adapter teach a fast model to hear fast rap? The v2/v3 picture
+is that whisper large-v3 is the most accurate model but runs slower than
+real time at the top tier, while turbo (809M) and parakeet-tdt-0.6b-v2 run
+7–50× faster than real time and fall off around 6 syl/s on unseen material.
+A fast model that stays accurate at 8+ syl/s would be the first one that
+could caption fast rap live. So the targets are turbo and parakeet, not
+large-v3.
+
+## Methods, in order
+
+1. **LoRA SFT.** Audio paired with verified lyrics, ordinary cross-entropy
+   on the transcript tokens. Standard for whisper (PEFT, or MLX on the Mac);
+   parakeet goes through NeMo. This is the method that teaches hearing,
+   which is the v2 failure: syllables dropped and mangled at speed.
+2. **DPO, only if SFT leaves a specific failure.** Pairs of (verified
+   transcript, the model's own bad transcript on the same clip). Aimed at
+   whisper's temperature-fallback loops and invented lines, which are a
+   preference problem more than a hearing one.
+3. **Minimum-WER training (the ASR form of RL), only if SFT plateaus.**
+   Sample N transcripts per clip, reward −WER. Published gains over SFT are
+   usually small; I did not check them for singing or rap specifically.
+
+## Training data
+
+All of it must be disjoint from every eval population (below).
+
+- **Real rap, LRCLIB-synced.** `scout.py` + `select_fresh.py` already find
+  tracks, pick windows and fetch audio. Training wants whole songs, or many
+  windows per song, not one 30 s window. Pre-cutoff catalogs are fine for
+  training (contamination only matters for eval). LRCLIB lyrics are
+  unverified, so training labels are noisy; budget a verified subset for
+  validation only. Audio stays local and gitignored like the rest. Training
+  on commercial audio is a legal gray zone even kept private.
+- **DALI** (about 5,000 songs with aligned lyrics, mostly not rap). I did
+  not check its license or its rap share.
+- **Suno.** Unlimited fast verses with exact lyrics. Worth generating only
+  if v3's fresh − core comparison at matched rate shows synthetic vocals
+  behave like human ones; otherwise the adapter learns Suno.
+- **Time-stretch augmentation** with `synth.py`'s pitch-preserving stretch,
+  capped near 1.3× because it sounds unnatural beyond that.
+- Train on full mixes, not demucs stems: live captioning gets the mix.
+
+Target size for the first run: about 20 hours.
+
+## Eval and the leak rules
+
+- **Primary: fresh tier, artist-held-out.** No track by any artist credited
+  on a fresh segment goes in training: GAWNE, JID, Token, Joyner Lucas,
+  Tech N9ne, Logic, NF, Merkules, Ren, Dax, King Iso, Chris Webby, Doja Cat
+  (13). That tests unseen voices, not only unseen songs, so an adapter that
+  learns particular voices doesn't pass.
+- **Exhibition** stays a secondary readout and its artists are excluded
+  from training too: Eminem, Twista, Busta Rhymes, Chris Brown, and every
+  feature on "Worldwide Choppers" and "Speedom" (Tech N9ne is already out).
+- **Core** (Suno) stays as is. If Suno data goes into training, core is no
+  longer unseen in style and gets reported as such.
+- **Clean-speech regression check.** A few minutes of ordinary read speech
+  (a LibriSpeech test-clean slice) before and after, so a rap gain that
+  wrecks normal dictation is visible.
+
+## Measures
+
+- Fresh critical rate, base vs fine-tuned, per target model, on mean rates.
+- **Paired** bootstrap interval on the difference. bootstrap_ci.py already
+  draws identical line resamples for every run (same seed, same reference
+  lines), so the pairing exists; it needs a cross-model delta added next to
+  the cross-population ones.
+- Live critical rate, because the point is a fast model: an adapter that
+  slows decoding past real time fails the question even if WER drops.
+- With 21 fresh segments, a gain under about 1 syl/s will likely sit inside
+  the interval (my estimate from v3-era interval widths, before the fresh
+  tier is scored; recheck once it is).
+
+## Predictions, recorded before any training
+
+- Claude (2026-10-28): LoRA SFT on about 20 h of real rap lifts turbo's
+  fresh critical rate from about 6.5 to about **8.0 syl/s** (unsure; the 6.5
+  base is itself a guess until v3 is scored). DPO on top adds **under 0.5**.
+  Clean-speech WER moves less than 1 point. The main risk is voice
+  memorization, which the artist hold-out is there to catch.
+- Adam: _(blank)_
+
+## Cost
+
+A LoRA on turbo with about 20 h of audio is a few GPU-hours on a 24 GB card,
+under $10 on RunPod (my estimate, unsure). It may fit on the Mac through MLX,
+more slowly. Paid runs go through /gpu-run with its smoke gate and cost
+confirmation.
+
+## Pre-requisites
+
+1. v3 verified and scored (the baseline).
+2. The fresh − core matched-rate result, which decides whether Suno data is
+   worth generating.
+3. A training-set builder that enforces the artist exclusion list above
+   from segments.yaml, so the leak rule is code, not memory.
+4. Cross-model paired delta in bootstrap_ci.py.
