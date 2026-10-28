@@ -568,3 +568,18 @@ are common in rap and uncommon in wordfreq's corpus; I did not check how
 many. After verification, run `bootstrap_ci.py --rate mean --adjust vocab`
 alongside the plain run; the exhibition − fresh delta is the one that
 matters.
+
+## 2026-10-28 — the 9–10 syl/s gap stays open
+
+A second scout pass over 24 more artists (scripts/scout_artists_2.txt,
+results/scout-2.md; `scout.py --out`) found 41 post-cutoff candidates; the
+fastest peak is 8.3 syl/s (Central Cee, "Did It First") over 12 s. No
+unpicked track from either pass reaches 9 over a 25–40 s window: the best is
+Token "Peter" at 8.45. Shortening the window to 15 s gets JID "Animals
+(Pt. I)" to 9.11 (13–29 s), which overlaps its existing segment, and Token
+"Never Me" to 8.93. Across 54 artists, sustained 9+ syl/s for 25 s exists
+only in GAWNE "TITANIC" (10.56). That's my read of the material, not of
+LRCLIB: the screen uses community stamps, so verified mean rates could move a
+segment from the 8–9 bin into the gap. If the gap survives verification, the
+interpolation between the 8.6 and 10.6 points carries the critical rate for
+any model that crosses there, and the bracket column will say so.

@@ -124,6 +124,7 @@ def main() -> None:
     p.add_argument("--file", type=Path)
     p.add_argument("--after", default="2025-06-01", help="keep first releases on or after this date")
     p.add_argument("--min-rate", type=float, default=5.0)
+    p.add_argument("--out", default="scout.md", help="file name under results/")
     args = p.parse_args()
     artists = list(args.artists)
     if args.file:
@@ -167,8 +168,8 @@ def main() -> None:
         lines.append(f"| {rate:.1f} | {artist} | {track} | {album} | {released} | "
                      f"{int(start // 60)}:{start % 60:04.1f} +{dur:.0f}s |")
     RESULTS_DIR.mkdir(exist_ok=True)
-    (RESULTS_DIR / "scout.md").write_text("\n".join(lines) + "\n")
-    print(f"wrote {RESULTS_DIR / 'scout.md'} ({len(rows)} candidates)")
+    (RESULTS_DIR / args.out).write_text("\n".join(lines) + "\n")
+    print(f"wrote {RESULTS_DIR / args.out} ({len(rows)} candidates)")
 
 
 if __name__ == "__main__":
