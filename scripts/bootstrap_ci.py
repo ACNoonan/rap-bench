@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Confidence intervals for WER, critical rate, and the memorization delta.
 
-    python scripts/bootstrap_ci.py [--reps 2000] [--seed 0] [--rate listed|mean]
-    -> results/ci.md, or results/ci-mean.md with --rate mean
+    python scripts/bootstrap_ci.py [--reps 2000] [--seed 0] [--rate listed|mean] [--adjust vocab]
+    -> results/ci.md; --rate mean adds -mean, --adjust vocab adds -vocab
 
 --rate mean replaces each segment's listed syl_per_sec with its mean rate:
 syllables in the verified lyrics over the clip's duration. The listed
@@ -24,6 +24,25 @@ curve. What it does NOT cover: the shape of the curve between tested rates.
 With two core points (4.9 and 8.4 syl/s) the straight line between them is
 an assumption, and the true crossing can sit anywhere in that bracket. The
 table reports the bracket next to the interval for that reason.
+
+--adjust vocab removes vocabulary mix from every WER by direct
+standardization. Rare words are harder to transcribe whether or not a
+model has heard the song, and famous Eminem verses carry more of them
+("monological") than a Suno verse does, so a raw WER gap mixes rarity with
+memorization. Each reference word goes in a frequency bin by its wordfreq
+Zipf score (log10 of occurrences per billion words: common >= 5, mid 3-5,
+rare < 3), and a segment's adjusted WER is
+
+    sum over bins b of  p_b * (errors in b / words in b)
+
+where p_b is the share of bin b across every scored reference word, all
+populations pooled. Every segment is scored as if it had the same
+vocabulary mix, so what's left of a population gap is not rarity. A bin a
+segment has no words in falls back to that segment's raw WER. Corpus
+frequency rather than a language model's log-prob: whisper's decoder has
+memorized the famous verses, so its log-prob would score memorized words
+as "expected" and fold memorization into the covariate. A unigram
+frequency can't contain any lyric sequence.
 """
 
 import argparse
@@ -32,6 +51,7 @@ import sys
 from pathlib import Path
 
 import jiwer
+from wordfreq import zipf_frequency
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -43,11 +63,18 @@ from synth import count_syllables
 
 
 DELTAS = [("exhibition", "core"), ("exhibition", "fresh"), ("fresh", "core")]
+BINS = ["common", "mid", "rare"]
 
 
-def line_errors(reference: str, hypothesis: str) -> list[tuple[int, int]]:
-    """(errors, words) per reference line, using whichever ad-lib variant
-    scores best, as score_segment does."""
+def vocab_bin(word: str) -> int:
+    z = zipf_frequency(word, "en")
+    return 0 if z >= 5 else 1 if z >= 3 else 2
+
+
+def line_errors(reference: str, hypothesis: str, bins: bool = False) -> list[list[list[int]]]:
+    """Per reference line, [errors, words] per vocabulary bin (a single
+    bin unless `bins`), using whichever ad-lib variant scores best, as
+    score_segment does."""
     hyp = normalize(hypothesis)
     best = None
     for strip in (True, False):
@@ -65,19 +92,28 @@ def line_errors(reference: str, hypothesis: str) -> list[tuple[int, int]]:
                     errs[k] += 1
             elif chunk.type == "insert":
                 errs[max(chunk.ref_start_idx - 1, 0)] += chunk.hyp_end_idx - chunk.hyp_start_idx
-        per_line = [[0, 0] for _ in lines]
+        per_line = [[[0, 0] for _ in (BINS if bins else [0])] for _ in lines]
         for k, e in enumerate(errs):
-            per_line[line_of[k]][0] += e
-            per_line[line_of[k]][1] += 1
+            cell = per_line[line_of[k]][vocab_bin(words[k]) if bins else 0]
+            cell[0] += e
+            cell[1] += 1
         wer = sum(errs) / len(words)
         if best is None or wer < best[0]:
-            best = (wer, [tuple(x) for x in per_line if x[1]])
+            best = (wer, [x for x in per_line if any(w for _, w in x)])
     return best[1]
 
 
-def resample(lines: list[tuple[int, int]], rng: random.Random) -> float:
-    draw = [lines[rng.randrange(len(lines))] for _ in lines]
-    return sum(e for e, _ in draw) / sum(w for _, w in draw)
+def wer_of(lines: list[list[list[int]]], weights: list[float] | None) -> float:
+    """Raw WER, or the standardized WER when bin weights are given."""
+    tot = [[sum(l[b][i] for l in lines) for i in (0, 1)] for b in range(len(lines[0]))]
+    raw = sum(e for e, _ in tot) / sum(w for _, w in tot)
+    if weights is None:
+        return raw
+    return sum(p * (e / w if w else raw) for p, (e, w) in zip(weights, tot))
+
+
+def resample(lines: list[list[list[int]]], rng: random.Random, weights: list[float] | None) -> float:
+    return wer_of([lines[rng.randrange(len(lines))] for _ in lines], weights)
 
 
 def pct(xs: list[float], q: float) -> float:
@@ -90,7 +126,9 @@ def main() -> None:
     p.add_argument("--reps", type=int, default=2000)
     p.add_argument("--seed", type=int, default=0)
     p.add_argument("--rate", choices=["listed", "mean"], default="listed")
+    p.add_argument("--adjust", choices=["none", "vocab"], default="none")
     args = p.parse_args()
+    bins = args.adjust == "vocab"
 
     segments = {s["id"]: s for s in load_segments()}
     refs = {sid: load_reference(sid) for sid in segments}
@@ -99,6 +137,27 @@ def main() -> None:
             if refs[sid]:
                 s["syl_per_sec"] = round(count_syllables(normalize(refs[sid])) / (s["end"] - s["start"]), 2)
     runs = sorted(d for d in OUTPUTS_DIR.iterdir() if d.is_dir())
+
+    # Vocabulary of the scored references, per population and pooled.
+    vocab_rows, weights = [], None
+    if bins:
+        pooled = [0, 0, 0]
+        for pop in POPULATIONS:
+            words = [w for sid, s in segments.items()
+                     if s.get("population", "exhibition") == pop and refs[sid]
+                     for w in normalize(refs[sid]).split()]
+            if not words:
+                continue
+            counts = [0, 0, 0]
+            for w in words:
+                counts[vocab_bin(w)] += 1
+            pooled = [a + b for a, b in zip(pooled, counts)]
+            zipf = sum(zipf_frequency(w, "en") for w in words) / len(words)
+            vocab_rows.append(f"| {pop} | {len(words)} | {zipf:.2f} | "
+                              + " | ".join(f"{c / len(words):.1%}" for c in counts) + " |")
+        weights = [c / sum(pooled) for c in pooled]
+        vocab_rows.append(f"| **pooled weights p_b** | {sum(pooled)} | | "
+                          + " | ".join(f"{w:.1%}" for w in weights) + " |")
 
     wer_rows, crit_rows = [], []
     for run in runs:
@@ -111,20 +170,20 @@ def main() -> None:
                    and (run / f"{sid}.txt").exists()]
             if not ids:
                 continue
-            data = {sid: line_errors(refs[sid], (run / f"{sid}.txt").read_text()) for sid in ids}
+            data = {sid: line_errors(refs[sid], (run / f"{sid}.txt").read_text(), bins) for sid in ids}
             rng = random.Random(args.seed)
             seg_reps = {sid: [] for sid in ids}
             reps = []
             for _ in range(args.reps):
                 scores = []
                 for sid in ids:
-                    w = resample(data[sid], rng)
+                    w = resample(data[sid], rng, weights)
                     seg_reps[sid].append(w)
                     scores.append(SegmentScore(sid, segments[sid]["tier"], segments[sid]["syl_per_sec"], w, 0))
                 reps.append(critical_rate(scores))
             crit_reps[pop] = reps
             full = [SegmentScore(sid, segments[sid]["tier"], segments[sid]["syl_per_sec"],
-                                 sum(e for e, _ in data[sid]) / sum(w for _, w in data[sid]), 0) for sid in ids]
+                                 wer_of(data[sid], weights), 0) for sid in ids]
             point[pop] = critical_rate(full)
             # the pair of tested rates the point estimate's crossing sits between
             rates = sorted({s.syl_per_sec for s in full})
@@ -137,9 +196,10 @@ def main() -> None:
                 bracket[pop] = "censored"
             for sid in ids:
                 n_lines = len(data[sid])
-                n_words = sum(w for _, w in data[sid])
-                wer = sum(e for e, _ in data[sid]) / n_words
-                wer_rows.append(f"| {run.name} | {sid} | {wer:.0%} | {pct(seg_reps[sid], .025):.0%}–"
+                n_words = sum(w for l in data[sid] for _, w in l)
+                raw = wer_of(data[sid], None)
+                adj = f" {wer_of(data[sid], weights):.0%} |" if bins else ""
+                wer_rows.append(f"| {run.name} | {sid} | {raw:.0%} |{adj} {pct(seg_reps[sid], .025):.0%}–"
                                 f"{pct(seg_reps[sid], .975):.0%} | {n_lines} | {n_words} |")
         for pop, reps in crit_reps.items():
             vals = [r for r, _ in reps]
@@ -161,7 +221,7 @@ def main() -> None:
         "# rap-bench confidence intervals",
         "",
         f"Cluster bootstrap over lyric lines, {args.reps} replicates, seed {args.seed}, "
-        f"rates: {args.rate}; "
+        f"rates: {args.rate}; vocabulary adjustment: {args.adjust}; "
         "95% percentile intervals. Written by `scripts/bootstrap_ci.py`; see its docstring for the design.",
         "",
         "## Critical rate",
@@ -177,13 +237,26 @@ def main() -> None:
         "",
         "## WER per segment",
         "",
-        "| model | segment | WER | 95% CI | lines | words |",
-        "|---|---|---|---|---|---|",
+        "| model | segment | WER |" + (" adjusted WER |" if bins else "") + " 95% CI | lines | words |",
+        "|---|---|---|---|---|---|" + ("---|" if bins else ""),
         *wer_rows,
         "",
     ]
+    if bins:
+        out[4:4] = [
+            "## Vocabulary of the scored references",
+            "",
+            "Share of reference words per wordfreq Zipf bin (common >= 5, mid 3-5, rare < 3). "
+            "Critical rates and intervals below use the standardized WER; the per-segment "
+            "95% CI is on the adjusted WER.",
+            "",
+            "| population | words | mean Zipf | common | mid | rare |",
+            "|---|---|---|---|---|---|",
+            *vocab_rows,
+            "",
+        ]
     RESULTS_DIR.mkdir(exist_ok=True)
-    name = "ci.md" if args.rate == "listed" else "ci-mean.md"
+    name = "ci" + ("-mean" if args.rate == "mean" else "") + ("-vocab" if bins else "") + ".md"
     (RESULTS_DIR / name).write_text("\n".join(out))
     print(f"wrote {RESULTS_DIR / name}")
 

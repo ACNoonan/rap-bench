@@ -1,6 +1,6 @@
 # rap-bench confidence intervals
 
-Cluster bootstrap over lyric lines, 2000 replicates, seed 0, rates: mean; 95% percentile intervals. Written by `scripts/bootstrap_ci.py`; see its docstring for the design.
+Cluster bootstrap over lyric lines, 2000 replicates, seed 0, rates: mean; vocabulary adjustment: none; 95% percentile intervals. Written by `scripts/bootstrap_ci.py`; see its docstring for the design.
 
 ## Critical rate
 

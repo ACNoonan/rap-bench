@@ -118,9 +118,11 @@ whisper turbo 2024-10, moonshine 2024-10, parakeet v2 2025-05-01.
 2. **Memorization delta** = exhibition − fresh critical rate, mean rates
    on both sides, with a bootstrap interval. Human vs human, so the
    synthetic-vocals confound is gone.
-3. **Vocabulary covariate**: per-segment reference-LM log-prob per word
-   (`prior_logprob.py`'s machinery). If fresh WER residuals track it,
-   rare words were part of the v2 gap.
+3. **Vocabulary covariate**: WER standardized to a pooled word-frequency
+   mix (`bootstrap_ci.py --adjust vocab`, wordfreq Zipf bins). Amended
+   2026-10-28 from decoder log-prob, which memorization contaminates; see
+   LOG.md. On v2 data rarity runs the other way (Suno verses are rarer),
+   so adjusting shrinks the delta.
 4. Core (Suno) stays as a secondary population; fresh vs core at matched
    rate tests whether synthetic vocals at speed are harder than human.
 
@@ -164,5 +166,7 @@ Adam, in this order:
    post links it. Going public needs `audio/`, `stems/` and `outputs/`
    kept out (already gitignored) and a look at the lyric excerpts.
 
-Still open after that: the vocabulary covariate (reference-LM log-prob per
-word per segment), and a fresh segment in the 9–10 syl/s gap.
+Run the vocabulary-adjusted table too: `bootstrap_ci.py --rate mean
+--adjust vocab` → results/ci-mean-vocab.md (built 2026-10-28, LOG.md).
+
+Still open after that: a fresh segment in the 9–10 syl/s gap.

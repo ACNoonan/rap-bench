@@ -531,3 +531,40 @@ decoding may not be perfectly comparable across the two dates. Fresh scores are
 deliberately not computed: every fresh lyric file carries TODO-VERIFY and
 the scorer skips it, so Adam can bet before seeing numbers. Checklist at the
 end of DESIGN.md.
+
+## 2026-10-28 — vocabulary covariate: rarity ran the other way
+
+`bootstrap_ci.py --adjust vocab` (results/ci-mean-vocab.md). Each reference
+word goes in a wordfreq Zipf bin (common ≥ 5, mid 3–5, rare < 3), and each
+segment's WER is standardized to the pooled bin mix: Σ_b p_b · (errors_b /
+words_b). Corpus frequency instead of the DESIGN.md plan's decoder log-prob,
+because whisper's decoder has memorized the famous verses and would score
+their words as expected.
+
+The v2 worry was that famous verses carry rarer words ("monological"). They
+carry fewer. Rare-word share is 6.5% in exhibition (1008 words) and 15.1% in
+core (218 words, the two Suno verses); mean Zipf 5.66 vs 4.86. So rarity
+made core harder, and adjusting for it shrinks the exhibition − core delta
+(mean rates, 2000 reps, seed 0):
+
+| model | delta, mean rates | adjusted for vocabulary | 95% CI, adjusted |
+|---|---|---|---|
+| whisper large-v3 | +2.0 | +1.6 | −0.8 to +4.1 |
+| whisper turbo | +1.0 | +0.6 | −1.1 to +1.7 |
+| mlx whisper turbo | +0.8 | +0.2 | −1.3 to +1.5 |
+| distil-large-v3 | +0.5 | −0.2 | −1.5 to +1.2 |
+| whisper small | +0.6 | −0.2 | −1.3 to +1.9 |
+| parakeet | −0.2 | −1.0 | −2.2 to +0.2 |
+
+Worked check, large-v3 on suno02: 21/52 common, 27/49 mid, 12/17 rare wrong;
+0.655·0.404 + 0.264·0.551 + 0.081·0.706 = 0.467 against raw 0.508.
+
+Only large-v3 keeps a positive point estimate worth talking about, and its
+interval still spans zero. The core side is two Suno verses, so its
+vocabulary share rests on 218 words and the pooled weights move once the
+fresh tier is verified (they're recomputed from every scored reference).
+Zipf scores slang unevenly ("tryna" 2.8, "finna" 2.3), so some "rare" words
+are common in rap and uncommon in wordfreq's corpus; I did not check how
+many. After verification, run `bootstrap_ci.py --rate mean --adjust vocab`
+alongside the plain run; the exhibition − fresh delta is the one that
+matters.
