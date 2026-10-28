@@ -18,6 +18,8 @@ import argparse
 import json
 import re
 import sys
+import time
+import urllib.error
 import urllib.parse
 import urllib.request
 from pathlib import Path
@@ -31,11 +33,28 @@ LRC_LINE = re.compile(r"\[(\d+):(\d+(?:\.\d+)?)\](.*)")
 PAD_BEFORE = 3.0
 
 
+def lrclib(path: str) -> object:
+    """GET with retries: LRCLIB answers bursts with 429/503."""
+    for attempt in range(4):
+        try:
+            with urllib.request.urlopen(f"https://lrclib.net/api/{path}") as resp:
+                return json.load(resp)
+        except urllib.error.HTTPError as e:
+            if e.code == 404:
+                return None
+            if e.code not in (429, 503) or attempt == 3:
+                raise
+            time.sleep(5 * (attempt + 1))
+
+
 def search_lrclib(artist: str, track: str) -> dict | None:
+    """Exact-match lookup first: it is the entry select_fresh.py chose the
+    window from, so the stamps agree. Search is the fallback."""
     query = urllib.parse.urlencode({"artist_name": artist, "track_name": track})
-    with urllib.request.urlopen(f"https://lrclib.net/api/search?{query}") as resp:
-        results = json.load(resp)
-    for r in results:
+    hit = lrclib(f"get?{query}")
+    if isinstance(hit, dict) and hit.get("syncedLyrics"):
+        return hit
+    for r in lrclib(f"search?{query}") or []:
         if r.get("syncedLyrics"):
             return r
     return None

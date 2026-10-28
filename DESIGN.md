@@ -73,3 +73,96 @@ a confound, not a clean control).
 and parakeet. Ship only if the psychometric curves are monotone-ish and
 the critical rate is stable across the two renders; then scale to ~5
 verses and the full model roster.
+
+# v3: the fresh tier (draft, 2026-10-28)
+
+## Why
+
+v2's memorization claim compares famous human recordings against one
+Suno verse at two rates. Three things are confounded with "memorized vs
+not": human vs synthetic vocals at speed, ordinary vs rare vocabulary
+("monological"), and, until 2026-10-28, peak vs mean rate units (LOG.md).
+With rates on one scale, no model's delta excludes zero.
+
+The blog post argued that for real recordings, verifiable lyrics and
+training contamination are the same variable. That holds only while the
+model keeps training. Every roster model is frozen, and the newest,
+parakeet-tdt-0.6b-v2, was released 2025-05-01. A track first released
+after that date cannot be in any roster model's training data, and its
+lyrics can still be verified. So contamination is ruled out by date, not
+by obscurity.
+
+Release dates, from memory except parakeet (searched 2026-10-28):
+wav2vec2-960h 2020, whisper large-v3 2023-11, distil-large-v3 2024-03,
+whisper turbo 2024-10, moonshine 2024-10, parakeet v2 2025-05-01.
+
+## Population `fresh`
+
+- Real tracks, first released on or after **2025-06-01** (MusicBrainz
+  first-release-date), English, commercially released.
+- Target 12–20 segments of 25–45 s, spread over **4–10 syl/s mean rate**,
+  at least two per 1 syl/s bin, several artists per bin so no single voice
+  owns a rate.
+- Candidates from `scripts/scout.py` → results/scout.md; Adam adds any he
+  knows. A segment's window is chosen on its densest contiguous passage.
+- Same pipeline as exhibition: yt-dlp official audio, `draft_lyrics.py`
+  from LRCLIB, then Adam verifies timing by ear and lyrics at 0.5×, and
+  deletes the TODO-VERIFY line. The scorer skips a segment until then.
+- `syl_per_sec` for every population is the **mean** rate: syllables of
+  the verified lyrics (synth.py's counter) over clip duration.
+
+## What gets measured
+
+1. **Fresh critical rate** per model: the honest ceiling on unseen human
+   rap, from a real curve rather than two points.
+2. **Memorization delta** = exhibition − fresh critical rate, mean rates
+   on both sides, with a bootstrap interval. Human vs human, so the
+   synthetic-vocals confound is gone.
+3. **Vocabulary covariate**: per-segment reference-LM log-prob per word
+   (`prior_logprob.py`'s machinery). If fresh WER residuals track it,
+   rare words were part of the v2 gap.
+4. Core (Suno) stays as a secondary population; fresh vs core at matched
+   rate tests whether synthetic vocals at speed are harder than human.
+
+## Predictions, recorded before any fresh segment is scored
+
+- Claude (2026-10-28): whisper large-v3 fresh critical rate **7.0 syl/s**
+  (between core 6.1 and exhibition 8.0); large-v3 exhibition − fresh
+  delta **+1.0**, with an interval that still includes zero unless n ≥ 15;
+  parakeet delta **≈ 0**.
+- Adam: _(fill in before verifying lyrics, since verification is what
+  unlocks the scores)_
+
+## Pre-requisites still open from v2
+
+- suno01's human read-along (lyrics/suno01.txt says "full line-by-line
+  read-along still worth doing before publishing numbers").
+
+## Status 2026-10-28 and the weekend checklist
+
+Done by Claude: 21 fresh segments in segments.yaml (12 artists, draft mean
+rates 4.5–10.6 syl/s, nothing between 9 and 10), audio fetched, lyric
+drafts from the same LRCLIB entry the window was chosen on, all nine raw
+configurations transcribed. Fresh scores stay hidden until verification:
+score.py and bootstrap_ci.py skip any lyric file containing TODO.
+
+Adam, in this order:
+
+1. **Bet first.** Write your fresh-tier predictions above (large-v3 fresh
+   critical rate, large-v3 and parakeet exhibition − fresh delta, mean
+   rates) before step 2 — verification is what reveals the scores.
+2. **Verify each fresh clip** (`lyrics/fresh-*.txt` against
+   `audio/fresh-*.wav` at 0.5×): fix words to what is actually rapped,
+   delete any opening line that starts before the clip (draft_lyrics.py
+   pads 3 s before the window), mark ad-libs in parentheses, delete the
+   TODO-VERIFY line, then set `timing_verified` and `lyrics_verified` in
+   segments.yaml. About 21 × 30 s of audio; budget 1.5–2 h.
+3. **suno01 read-along**, the open v2 item.
+4. Then: `python scripts/score.py`, `python scripts/bootstrap_ci.py --rate mean`.
+   The mean-rate run re-measures every rate from the verified lyrics.
+5. Decide the repo link: github.com/ACNoonan/rap-bench is private and the
+   post links it. Going public needs `audio/`, `stems/` and `outputs/`
+   kept out (already gitignored) and a look at the lyric excerpts.
+
+Still open after that: the vocabulary covariate (reference-LM log-prob per
+word per segment), and a fresh segment in the 9–10 syl/s gap.

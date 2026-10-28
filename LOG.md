@@ -453,3 +453,81 @@ decoder" to "we cannot demonstrate it in the naked decoder" — which the
 audio-MIA literature independently supports as the expected locus
 (cross-modal binding). Behavioral matched-domain WER deltas remain the
 demonstration.
+
+## 2026-10-28 — rate units audit: the memorization delta was mostly a peak-vs-mean mismatch
+
+Coming back to the blog post, three weaknesses: the unseen curve has two
+points, the unseen verse's rare vocabulary is an untested alternative
+explanation, and no WER had an interval. Added `scripts/bootstrap_ci.py`
+(cluster bootstrap over lyric lines; results/ci.md) and found a fourth,
+larger problem while checking the rate axis.
+
+**The two populations were on different rate scales.** segments.yaml says
+exhibition `syl_per_sec` is "approximate peak"; the core rates came from
+syllables / duration (a mean). Recomputed every segment's mean rate as
+count_syllables(verified lyrics) / clip duration, the same heuristic synth.py
+uses:
+
+| segment | listed | mean |
+|---|---|---|
+| lose-yourself-v1 | 5.5 | 4.31 |
+| the-way-i-am-v1 | 5.5 | 4.22 |
+| speedom-em | 9.0 | 6.74 |
+| worldwide-choppers-twista | 10.0 | 7.60 |
+| rap-god-fast | 9.6 | 8.72 |
+| godzilla-v3 | 10.6 | 10.30 |
+| suno01 (core) | 4.9 | 4.82 |
+| suno02 (core) | 8.4 | 8.24 (peak 10.6) |
+
+WER is scored over the whole clip, so the mean is the matching unit.
+Exhibition − core critical-rate delta, mean rates on both sides
+(`bootstrap_ci.py --rate mean`, results/ci-mean.md, 2000 reps):
+
+| model | delta as published | delta, mean vs mean | 95% CI |
+|---|---|---|---|
+| whisper large-v3 | +3.0 | +2.0 | −0.4 to +4.3 |
+| whisper turbo | +2.9 | +1.0 | −0.4 to +2.1 |
+| mlx large-v3-turbo | +2.9 | +0.8 | −0.6 to +2.0 |
+| distil-large-v3 | +2.4 | +0.5 | −0.7 to +1.8 |
+| whisper small | +2.6 | +0.6 | −0.9 to +2.0 |
+| parakeet tdt 0.6b v2 | +1.6 | −0.2 | −1.4 to +0.9 |
+
+Every interval includes zero. The ordering (whisper above parakeet)
+survives; "+3 syl/s of memorization" and "whisper memorized twice as much"
+do not. Even on listed rates the large-v3 vs parakeet deltas overlap
+(+1.5 to +4.6 vs +0.7 to +3.2, results/ci.md). The qualitative evidence
+(near-verbatim Godzilla, moonshine's "mom's spaghetti") is untouched, but
+the quantitative claim now rests on n = 2 core points and needs the fresh
+tier below. The bootstrap intervals cover word-sampling noise only; the
+core crossing is a straight line across 4.82–8.24 and could sit anywhere
+in that bracket.
+
+Next: DESIGN.md v3 (fresh tier: real tracks released after every roster
+model). `scripts/scout.py` screens candidates by release date (MusicBrainz)
+and peak rate from LRCLIB sync stamps → results/scout.md.
+
+## 2026-10-28 — fresh tier built: 21 post-cutoff segments, transcribed, waiting on verification
+
+`scripts/scout.py` screened 30 artists (scripts/scout_artists.txt) for tracks
+first released ≥ 2025-06-01. Release-group dates alone let old songs through
+on reissues (STANS soundtrack 2025 carries "Rap God" and "Stan"; Music To Be
+Murdered By [Epilogue] 2026 carries the 2020 Side B tracks as *new recording
+entities*), so a track is dropped if any MusicBrainz recording with the same
+artist and title is older: 33 dropped, 81 kept (results/scout.md). "Lock It
+Up" (Eminem, 2020) survived the filter under a variant title; not picked.
+
+`scripts/select_fresh.py` took 21 picks (12 artists, ≤ 3 each), chose each
+one's densest 25–40 s window from LRCLIB stamps, and kept a YouTube upload
+only if its duration matched LRCLIB's within 3 s. Draft mean rates 4.48–10.56
+syl/s; bins 4–5: 1, 5–6: 6, 6–7: 8, 7–8: 2, 8–9: 4, 9–10: 0, 10+: 1.
+`draft_lyrics.py` now tries LRCLIB's exact-match `get` before `search`, so the
+draft comes from the entry the window was chosen on, and retries 429/503.
+
+All nine raw configurations transcribed all 21 (outputs/, gitignored).
+faster-whisper 1.2.1 crashes on av 19 (`metadata_errors` kwarg); pinned
+`av<16` in the whisper extra. The fresh runs used faster-whisper 1.2.1 /
+av 15.1, and I don't know what versions the July runs used, so RTF and
+decoding may not be perfectly comparable across the two dates. Fresh scores are
+deliberately not computed: every fresh lyric file carries TODO-VERIFY and
+the scorer skips it, so Adam can bet before seeing numbers. Checklist at the
+end of DESIGN.md.

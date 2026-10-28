@@ -20,7 +20,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from rapbench import LYRICS_DIR, OUTPUTS_DIR, RESULTS_DIR, load_segments
 from rapbench.scoring import SURVIVAL_WER, TIER_ORDER, critical_rate, score_segment
 
-POPULATIONS = ["exhibition", "core"]
+POPULATIONS = ["exhibition", "core", "fresh"]
 
 
 def load_reference(segment_id: str) -> str | None:

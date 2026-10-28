@@ -11,7 +11,7 @@ dependencies = [
 [project.optional-dependencies]
 fetch = ["yt-dlp"]
 separate = ["demucs"]
-whisper = ["faster-whisper"]
+whisper = ["faster-whisper", "av<16"]  # av 16+ dropped the metadata_errors kwarg faster-whisper 1.2.1 passes
 hf = ["transformers", "torch", "torchaudio"]
 mlx = ["mlx-whisper", "parakeet-mlx"]
 

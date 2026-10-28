@@ -269,3 +269,341 @@ segments:
       Verse region of Suno take 1 (intro with ad-lib wall trimmed off).
       Sung truth from two-model ASR consensus; human read-along pending.
       Enters mid-line-3 of verse-01; tail "(an incubator)" optional.
+
+  # --- fresh tier: released after every roster model (DESIGN.md v3) ---
+  - id: fresh-titanic-gawne
+    population: fresh
+    artist: GAWNE
+    track: TITANIC
+    lrclib:
+      artist: Gawne
+      track: Titanic
+    url: https://www.youtube.com/watch?v=9CBP1A0YJP8
+    start: 147.7
+    end: 174.3
+    syl_per_sec: 10.56
+    tier: insane
+    timing_verified: false
+    lyrics_verified: false
+    notes: fresh tier (DESIGN.md v3). Window and rate from lrclib id 30871325 sync stamps; upload 187s vs
+      lrclib 187s. Re-measure rate after verification.
+  - id: fresh-nightmares-gawne
+    population: fresh
+    artist: GAWNE
+    track: Nightmares
+    lrclib:
+      artist: GAWNE
+      track: Nightmares
+    url: https://www.youtube.com/watch?v=hh7yF9Tjt-4
+    start: 49.1
+    end: 74.4
+    syl_per_sec: 5.03
+    tier: baseline
+    timing_verified: false
+    lyrics_verified: false
+    notes: fresh tier (DESIGN.md v3). Window and rate from lrclib id 32430950 sync stamps; upload 170s vs
+      lrclib 169s. Re-measure rate after verification.
+  - id: fresh-animals-pt-i-jid
+    population: fresh
+    artist: JID
+    track: Animals (Pt. I)
+    lrclib:
+      artist: JID
+      track: Animals (Pt. I)
+    url: https://www.youtube.com/watch?v=JPyOYoNleFo
+    start: 12.8
+    end: 40.8
+    syl_per_sec: 8.62
+    tier: insane
+    timing_verified: false
+    lyrics_verified: false
+    notes: fresh tier (DESIGN.md v3). Window and rate from lrclib id 23010869 sync stamps; upload 348s vs
+      lrclib 348s. Re-measure rate after verification.
+  - id: fresh-sk8-jid
+    population: fresh
+    artist: JID
+    track: Sk8
+    lrclib:
+      artist: JID
+      track: Sk8
+    url: https://www.youtube.com/watch?v=xEYqvgF-XnE
+    start: 12.9
+    end: 39.5
+    syl_per_sec: 6.85
+    tier: fast
+    timing_verified: false
+    lyrics_verified: false
+    notes: fresh tier (DESIGN.md v3). Window and rate from lrclib id 23348590 sync stamps; upload 191s vs
+      lrclib 190s. Re-measure rate after verification.
+  - id: fresh-behold-jid
+    population: fresh
+    artist: JID
+    track: Behold
+    lrclib:
+      artist: JID
+      track: Behold
+    url: https://www.youtube.com/watch?v=n6pXCtu8T1w
+    start: 115.5
+    end: 152.8
+    syl_per_sec: 6.79
+    tier: fast
+    timing_verified: false
+    lyrics_verified: false
+    notes: fresh tier (DESIGN.md v3). Window and rate from lrclib id 22935020 sync stamps; upload 156s vs
+      lrclib 156s. Re-measure rate after verification.
+  - id: fresh-never-me-token
+    population: fresh
+    artist: Token
+    track: Never Me
+    lrclib:
+      artist: Token
+      track: Never Me
+    url: https://www.youtube.com/watch?v=x3Qqp_F6jPI
+    start: 113.7
+    end: 141.1
+    syl_per_sec: 8.19
+    tier: insane
+    timing_verified: false
+    lyrics_verified: false
+    notes: fresh tier (DESIGN.md v3). Window and rate from lrclib id 22922793 sync stamps; upload 163s vs
+      lrclib 163s. Re-measure rate after verification.
+  - id: fresh-the-ropes-token
+    population: fresh
+    artist: Token
+    track: The Ropes
+    lrclib:
+      artist: Token
+      track: The Ropes
+    url: https://www.youtube.com/watch?v=fr88zMLoYaI
+    start: 27.7
+    end: 59.2
+    syl_per_sec: 7.46
+    tier: fast
+    timing_verified: false
+    lyrics_verified: false
+    notes: fresh tier (DESIGN.md v3). Window and rate from lrclib id 37756427 sync stamps; upload 172s vs
+      lrclib 172s. Re-measure rate after verification.
+  - id: fresh-kumquat-token
+    population: fresh
+    artist: Token
+    track: Kumquat
+    lrclib:
+      artist: Token
+      track: Kumquat
+    url: https://www.youtube.com/watch?v=il-O3YnuAg0
+    start: 46.5
+    end: 74.8
+    syl_per_sec: 6.96
+    tier: fast
+    timing_verified: false
+    lyrics_verified: false
+    notes: fresh tier (DESIGN.md v3). Window and rate from lrclib id 24828500 sync stamps; upload 175s vs
+      lrclib 175s. Re-measure rate after verification.
+  - id: fresh-gta-6-joyner-lucas
+    population: fresh
+    artist: Joyner Lucas
+    track: GTA 6
+    lrclib:
+      artist: Joyner Lucas
+      track: GTA 6
+    url: https://www.youtube.com/watch?v=tQdddUNE7S8
+    start: 104.8
+    end: 130.8
+    syl_per_sec: 8.2
+    tier: insane
+    timing_verified: false
+    lyrics_verified: false
+    notes: fresh tier (DESIGN.md v3). Window and rate from lrclib id 30852600 sync stamps; upload 168s vs
+      lrclib 168s. Re-measure rate after verification.
+  - id: fresh-one-of-them-joyner-lucas
+    population: fresh
+    artist: Joyner Lucas
+    track: One of Them
+    lrclib:
+      artist: Joyner Lucas
+      track: One Of Them
+    url: https://www.youtube.com/watch?v=I4MeSxWe-Ys
+    start: 109.2
+    end: 135.2
+    syl_per_sec: 8.06
+    tier: insane
+    timing_verified: false
+    lyrics_verified: false
+    notes: fresh tier (DESIGN.md v3). Window and rate from lrclib id 22410740 sync stamps; upload 172s vs
+      lrclib 171s. Re-measure rate after verification.
+  - id: fresh-monsters-joyner-lucas
+    population: fresh
+    artist: Joyner Lucas
+    track: Monsters
+    lrclib:
+      artist: Joyner Lucas
+      track: Monsters
+    url: https://www.youtube.com/watch?v=I3LeeolMkHc
+    start: 147.2
+    end: 173.1
+    syl_per_sec: 7.19
+    tier: fast
+    timing_verified: false
+    lyrics_verified: false
+    notes: fresh tier (DESIGN.md v3). Window and rate from lrclib id 27975471 sync stamps; upload 193s vs
+      lrclib 193s. Re-measure rate after verification.
+  - id: fresh-black-walt-street-the-new-breed-tech-n9ne
+    population: fresh
+    artist: Tech N9ne
+    track: Black Walt Street (The New Breed)
+    lrclib:
+      artist: Tech N9ne
+      track: Black Walt Street (The New Breed)
+    url: https://www.youtube.com/watch?v=1b_1DS5ZrxE
+    start: 122.1
+    end: 151.5
+    syl_per_sec: 6.59
+    tier: fast
+    timing_verified: false
+    lyrics_verified: false
+    notes: fresh tier (DESIGN.md v3). Window and rate from lrclib id 22896744 sync stamps; upload 274s vs
+      lrclib 274s. Re-measure rate after verification.
+  - id: fresh-the-nice-one-tech-n9ne
+    population: fresh
+    artist: Tech N9ne
+    track: The Nice One
+    lrclib:
+      artist: Tech N9ne
+      track: The Nice One
+    url: https://www.youtube.com/watch?v=kPLZQB_7mbc
+    start: 111.0
+    end: 140.8
+    syl_per_sec: 6.47
+    tier: fast
+    timing_verified: false
+    lyrics_verified: false
+    notes: fresh tier (DESIGN.md v3). Window and rate from lrclib id 26702418 sync stamps; upload 269s vs
+      lrclib 267s. Re-measure rate after verification.
+  - id: fresh-call-them-less-logic
+    population: fresh
+    artist: Logic
+    track: Call Them Less
+    lrclib:
+      artist: Logic
+      track: Call Them Less
+    url: https://www.youtube.com/watch?v=sX4oRuW7S6o
+    start: 219.1
+    end: 245.0
+    syl_per_sec: 6.73
+    tier: fast
+    timing_verified: false
+    lyrics_verified: false
+    notes: fresh tier (DESIGN.md v3). Window and rate from lrclib id 38331121 sync stamps; upload 288s vs
+      lrclib 288s. Re-measure rate after verification.
+  - id: fresh-give-me-a-reason-nf
+    population: fresh
+    artist: NF
+    track: GIVE ME A REASON
+    lrclib:
+      artist: NF
+      track: GIVE ME A REASON
+    url: https://www.youtube.com/watch?v=ljh8Uo2tLQ0
+    start: 83.6
+    end: 111.3
+    syl_per_sec: 6.53
+    tier: fast
+    timing_verified: false
+    lyrics_verified: false
+    notes: fresh tier (DESIGN.md v3). Window and rate from lrclib id 24561712 sync stamps; upload 183s vs
+      lrclib 182s. Re-measure rate after verification.
+  - id: fresh-bad-news-merkules
+    population: fresh
+    artist: Merkules
+    track: Bad News
+    lrclib:
+      artist: Merkules
+      track: Bad News
+    url: https://www.youtube.com/watch?v=NAVdqiIuZ80
+    start: 19.4
+    end: 47.3
+    syl_per_sec: 6.17
+    tier: fast
+    timing_verified: false
+    lyrics_verified: false
+    notes: fresh tier (DESIGN.md v3). Window and rate from lrclib id 37404674 sync stamps; upload 183s vs
+      lrclib 183s. Re-measure rate after verification.
+  - id: fresh-richards-tale-set-the-scene-ren
+    population: fresh
+    artist: Ren
+    track: 'Richard’s Tale: Set the Scene'
+    lrclib:
+      artist: Ren
+      track: Richard's Tale - Set The Scene
+    url: https://www.youtube.com/watch?v=wq6Ldhjgn30
+    start: 16.1
+    end: 41.9
+    syl_per_sec: 5.94
+    tier: baseline
+    timing_verified: false
+    lyrics_verified: false
+    notes: fresh tier (DESIGN.md v3). Window and rate from lrclib id 28163582 sync stamps; upload 60s vs
+      lrclib 60s. Re-measure rate after verification.
+  - id: fresh-caught-you-in-the-bed-dax
+    population: fresh
+    artist: Dax
+    track: Caught You in the Bed
+    lrclib:
+      artist: Dax
+      track: Caught You in the Bed
+    url: https://www.youtube.com/watch?v=aFG_TnrnKKc
+    start: 80.1
+    end: 109.7
+    syl_per_sec: 5.64
+    tier: baseline
+    timing_verified: false
+    lyrics_verified: false
+    notes: fresh tier (DESIGN.md v3). Window and rate from lrclib id 34293276 sync stamps; upload 122s vs
+      lrclib 125s. Re-measure rate after verification.
+  - id: fresh-crash-out-king-iso
+    population: fresh
+    artist: King Iso
+    track: Crash Out
+    lrclib:
+      artist: King Iso
+      track: Crash Out
+    url: https://www.youtube.com/watch?v=fnHcraLXS_8
+    start: 148.4
+    end: 177.5
+    syl_per_sec: 5.55
+    tier: baseline
+    timing_verified: false
+    lyrics_verified: false
+    notes: fresh tier (DESIGN.md v3). Window and rate from lrclib id 38048821 sync stamps; upload 212s vs
+      lrclib 211s. Re-measure rate after verification.
+  - id: fresh-raw-thoughts-vii-chris-webby
+    population: fresh
+    artist: Chris Webby
+    track: Raw Thoughts VII
+    lrclib:
+      artist: Chris Webby
+      track: Raw Thoughts VII
+    url: https://www.youtube.com/watch?v=eW9xH3feKEo
+    start: 46.5
+    end: 77.2
+    syl_per_sec: 5.63
+    tier: baseline
+    timing_verified: false
+    lyrics_verified: false
+    notes: fresh tier (DESIGN.md v3). Window and rate from lrclib id 37317637 sync stamps; upload 420s vs
+      lrclib 421s. Re-measure rate after verification.
+  - id: fresh-jealous-type-doja-cat
+    population: fresh
+    artist: Doja Cat
+    track: Jealous Type
+    lrclib:
+      artist: Doja Cat
+      track: Jealous Type
+    url: https://www.youtube.com/watch?v=I6RSSFTTmCA
+    start: 77.0
+    end: 103.1
+    syl_per_sec: 4.48
+    tier: baseline
+    timing_verified: false
+    lyrics_verified: false
+    notes: fresh tier (DESIGN.md v3). Window and rate from lrclib id 23657021 sync stamps; upload 164s vs
+      lrclib 164s. Re-measure rate after verification.
