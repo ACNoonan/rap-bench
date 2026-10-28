@@ -138,3 +138,9 @@ Known issues:
 
 Verified segments are welcome, especially fast rap from after mid-2025 and
 fast rap in languages other than English.
+
+## License
+
+Code is [MIT](LICENSE). The lyric excerpts in `lyrics/` belong to their
+rights holders and are included only as short references for scoring; the
+MIT license doesn't cover them.
