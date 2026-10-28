@@ -241,10 +241,13 @@ Target size for the first run: about 20 hours.
 ## Measures
 
 - Fresh critical rate, base vs fine-tuned, per target model, on mean rates.
-- **Paired** bootstrap interval on the difference. bootstrap_ci.py already
-  draws identical line resamples for every run (same seed, same reference
-  lines), so the pairing exists; it needs a cross-model delta added next to
-  the cross-population ones.
+- **Paired** bootstrap interval on the difference: both models scored on
+  the same resampled lines in each replicate. bootstrap_ci.py is close but
+  not there. It reseeds identically per run, but `line_errors` picks the
+  ad-lib variant that scores best per model, and a line made only of
+  ad-libs disappears when they're stripped, so two models can resample
+  different line sets. It needs one fixed variant per segment for paired
+  runs, plus a cross-model delta next to the cross-population ones.
 - Live critical rate, because the point is a fast model: an adapter that
   slows decoding past real time fails the question even if WER drops.
 - With 21 fresh segments, a gain under about 1 syl/s will likely sit inside
@@ -274,4 +277,5 @@ confirmation.
    worth generating.
 3. A training-set builder that enforces the artist exclusion list above
    from segments.yaml, so the leak rule is code, not memory.
-4. Cross-model paired delta in bootstrap_ci.py.
+4. Cross-model paired delta in bootstrap_ci.py, with the ad-lib variant
+   fixed per segment.
