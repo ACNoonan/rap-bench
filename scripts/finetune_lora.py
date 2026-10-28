@@ -20,12 +20,20 @@ clean read-speech clips in train/clean/ (regression check). Base and adapter
 go through the same transformers ASR pipeline call as transcribe.py's hf
 backend, with language fixed to English for both.
 
+Labels: half the chunks (by a hash of song and start, so fixed across runs)
+carry whisper timestamp tokens around each lyric line, from the LRCLIB line
+stamps; the other half are plain <|notimestamps|> text. Eval decodes clips
+over 30 s in timestamped long-form mode, which seeks on those tokens, so an
+adapter trained only on plain text could lose long-form seeking and stop at
+30 s (hostile review, 2026-10-28). Mixing both is whisper's own recipe.
+
 Audio is read with the stdlib wave module (16 kHz mono int16, as
 build_train.py and fetch.py write it), so the box needs no audio library.
 """
 
 import argparse
 import copy
+import hashlib
 import json
 import math
 import os
@@ -59,19 +67,41 @@ def log(msg: str) -> None:
     print(msg, flush=True)
 
 
+def with_timestamps(r: dict) -> bool:
+    return int(hashlib.sha1(f"{r['song']}:{r['start']}".encode()).hexdigest(), 16) % 2 == 0
+
+
 class Chunks(torch.utils.data.Dataset):
     def __init__(self, rows, audio, processor):
         self.rows, self.audio, self.proc = rows, audio, processor
+        tok = processor.tokenizer
+        self.sot = tok.convert_tokens_to_ids("<|startoftranscript|>")
+        self.prefix = [self.sot, tok.convert_tokens_to_ids("<|en|>"), tok.convert_tokens_to_ids("<|transcribe|>")]
+        self.notime = tok.convert_tokens_to_ids("<|notimestamps|>")
+        self.ts0 = tok.convert_tokens_to_ids("<|0.00|>")
+        self.eot = tok.eos_token_id
 
     def __len__(self):
         return len(self.rows)
+
+    def ts(self, t: float) -> int:
+        return self.ts0 + int(round(min(max(t, 0.0), 30.0) / 0.02))
+
+    def labels(self, r: dict) -> list[int]:
+        enc = lambda t: self.proc.tokenizer.encode(" " + t.strip(), add_special_tokens=False)
+        if with_timestamps(r) and r.get("lines"):
+            ids = list(self.prefix)
+            for a, b, t in r["lines"]:
+                ids += [self.ts(a), *enc(t), self.ts(b)]
+        else:
+            ids = [*self.prefix, self.notime, *enc(r["text"])]
+        return (ids + [self.eot])[:448]
 
     def __getitem__(self, i):
         r = self.rows[i]
         x = as_float(self.audio[r["audio"]][int(r["start"] * SR): int(r["end"] * SR)])
         feats = self.proc.feature_extractor(x, sampling_rate=SR, return_tensors="np").input_features[0]
-        ids = self.proc.tokenizer(r["text"]).input_ids[:448]
-        return feats, ids
+        return feats, self.labels(r)
 
 
 def collate(batch, start_id):
@@ -163,7 +193,6 @@ def main() -> None:
         f"{len(val_rows)} val chunks, {len(audio)} songs loaded")
 
     processor = WhisperProcessor.from_pretrained(args.base)
-    processor.tokenizer.set_prefix_tokens(language="en", task="transcribe", predict_timestamps=False)
     model = WhisperForConditionalGeneration.from_pretrained(args.base, dtype=torch.float32).to(device)
     start_id = model.config.decoder_start_token_id
     slug = args.base.split("/")[-1]
@@ -196,9 +225,15 @@ def main() -> None:
     log(f"lora: {n_tr / 1e6:.1f}M trainable params")
     metrics["trainable_params"] = n_tr
 
+    ds = Chunks(train_rows, audio, processor)
+    n_ts = sum(with_timestamps(r) and bool(r.get("lines")) for r in train_rows)
+    log(f"labels: {n_ts}/{len(train_rows)} train chunks with timestamp tokens")
+    log("label example: " + processor.tokenizer.decode(ds.labels(train_rows[0]), decode_with_timestamps=True)[:200])
+    metrics["train_chunks_with_timestamps"] = n_ts
+
     g = torch.Generator().manual_seed(args.seed)
     col = lambda b: collate(b, start_id)
-    train_dl = torch.utils.data.DataLoader(Chunks(train_rows, audio, processor), batch_size=args.batch,
+    train_dl = torch.utils.data.DataLoader(ds, batch_size=args.batch,
                                            shuffle=True, generator=g, collate_fn=col, num_workers=args.workers)
     val_dl = torch.utils.data.DataLoader(Chunks(val_rows, audio, processor), batch_size=args.batch,
                                          collate_fn=col, num_workers=args.workers)
@@ -245,11 +280,25 @@ def main() -> None:
 
         merged = copy.deepcopy(model).merge_and_unload()
         merged.eval()
+        # D1 for the merge: one val batch's loss through the adapter and
+        # through the merged copy that writes the transcripts. They should
+        # agree to bf16 noise; a gap means the transcripts aren't the model
+        # whose val loss was logged. lora_B starts at zero, so its norm
+        # tells a silent no-op from a small effect.
+        feats, lab = next(iter(val_dl))
+        with torch.no_grad(), torch.autocast(device, dtype=torch.bfloat16):
+            l_adapter = model(input_features=feats.to(device), labels=lab.to(device)).loss.item()
+            l_merged = merged(input_features=feats.to(device), labels=lab.to(device)).loss.item()
+        b_norm = math.sqrt(sum(p.detach().float().pow(2).sum().item()
+                               for n, p in model.named_parameters() if "lora_B" in n))
+        log(f"epoch {epoch} merge check: adapter {l_adapter:.4f} merged {l_merged:.4f} lora_B norm {b_norm:.3f}")
         secs = transcribe_all(merged, processor, items, out / "outputs" / f"hf-{slug}-lora-e{epoch}__raw", device)
         del merged
         torch.cuda.empty_cache() if device == "cuda" else None
         metrics["epochs"].append({"epoch": epoch, "steps": step, "train_loss": round(train_loss, 4),
-                                  "val_loss": round(val_loss, 4), "secs": round(time.perf_counter() - t0, 1)})
+                                  "val_loss": round(val_loss, 4), "secs": round(time.perf_counter() - t0, 1),
+                                  "merge_check": {"adapter": round(l_adapter, 4), "merged": round(l_merged, 4)},
+                                  "lora_b_norm": round(b_norm, 4)})
         metrics["evals"].append({"tag": f"lora-e{epoch}", "clips": len(items), "secs": round(secs, 1)})
         flush()
         if step >= total:

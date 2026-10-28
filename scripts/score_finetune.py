@@ -15,7 +15,16 @@ Instrument check (D1): the base model's WER on the scored exhibition and
 core segments next to faster-whisper turbo's from July. Same weights,
 different decoder implementation and hardware, so they should agree within
 a few points; a large gap means the eval path is broken, not the model.
+Pre-registered pass (DESIGN.md v4): median |difference| <= 5 WER points.
+
+Coverage check: on every benchmark clip longer than 30 s, each checkpoint's
+transcript word count over the base model's. Long-form decoding seeks on
+timestamp tokens; an adapter that broke seeking stops near 30 s and shows up
+here as a ratio well under 1 (flagged below 0.7), with no reference needed,
+so it can be read for fresh clips before their lyrics are verified.
 """
+
+import statistics
 
 import json
 import shutil
@@ -68,6 +77,27 @@ def main() -> None:
             b = wer([ref], [(ref_dir / f"{s['id']}.txt").read_text()])
             d1.append(f"| {s['id']} | {a:.0%} | {b:.0%} | {a - b:+.0%} |")
 
+    med = statistics.median(abs(float(r.split("|")[4].strip().rstrip("%"))) for r in d1) if d1 else None
+    verdict = ("no segments to compare" if med is None else
+               f"median |diff| {med:.0f} points: {'PASS' if med <= 5 else 'FAIL, eval path suspect'} (threshold 5)")
+
+    long_ids = [s["id"] for s in load_segments() if s.get("population") in ("exhibition", "core", "fresh")
+                and s["end"] - s["start"] > 30 and (base / f"{s['id']}.txt").exists()]
+    cov = []
+    for d in tags:
+        if d == base:
+            continue
+        ratios = []
+        for sid in long_ids:
+            b = len((base / f"{sid}.txt").read_text().split())
+            h = len((d / f"{sid}.txt").read_text().split()) if (d / f"{sid}.txt").exists() else 0
+            if b:
+                ratios.append((h / b, sid))
+        if ratios:
+            low = [f"{sid} {r:.2f}" for r, sid in ratios if r < 0.7]
+            cov.append(f"| {d.name} | {len(ratios)} | {statistics.median(r for r, _ in ratios):.2f} | "
+                       f"{min(r for r, _ in ratios):.2f} | {', '.join(low) or 'none'} |")
+
     epochs = [f"| {e['epoch']} | {e['steps']} | {e['train_loss']} | {e['val_loss']} | {e['secs'] / 60:.0f} min |"
               for e in metrics["epochs"]]
     out = [
@@ -84,6 +114,11 @@ def main() -> None:
         "## Instrument check: base model vs faster-whisper turbo (July)", "",
         "Same weights, different implementation and hardware. A large gap means the eval path is broken.", "",
         "| segment | HF base (this run) | faster-whisper turbo | diff |", "|---|---|---|---|", *d1, "",
+        f"**{verdict}.**", "",
+        "## Coverage on clips over 30 s", "",
+        "Transcript words relative to the base model on the same clip. Under 0.7 suggests the adapter broke "
+        "long-form seeking and the transcript stops early.", "",
+        "| checkpoint | clips | median ratio | min | flagged < 0.7 |", "|---|---|---|---|---|", *cov, "",
         "Benchmark scores: transcripts are copied to `outputs/`; run `score.py` and "
         "`bootstrap_ci.py --rate mean` (fresh segments score only once verified).", "",
     ]

@@ -263,6 +263,27 @@ Target size for the first run: about 20 hours.
   memorization, which the artist hold-out is there to catch.
 - Adam: _(blank)_
 
+## Decisions fixed before the first run (2026-10-28, after hostile review)
+
+- **Headline checkpoint: the final epoch (e3).** Not the best-looking one.
+  Picking an epoch after seeing fresh scores would be selection on the test
+  set. e1 and e2 transcripts are kept as a learning curve only.
+- **One seed (7).** The bootstrap covers sampling over clips, not training
+  noise, so the result is reported as a single training run.
+- **Instrument pass (D1):** the base model through the HF pipeline must land
+  within a median 5 WER points of July's faster-whisper turbo on the scored
+  exhibition and core segments. If it doesn't, the eval path is broken and
+  the run answers nothing.
+- **Coverage gate:** on clips over 30 s, an adapter transcript under 0.7× the
+  base model's word count flags broken long-form seeking. Half the training
+  labels carry timestamp tokens to prevent that.
+- **Leak check is independent of the name filter:** `build_train.py check`
+  fails on 3+ 8-grams shared between one training song and any lyric
+  reference, and on any chunk over 30 s. Lil Wayne (on "Look at Me Now") is
+  held out with the other exhibition guests. I did not check guest credits
+  on the fresh tracks beyond the primary artist; the 8-gram check covers the
+  songs, not the voices.
+
 ## Cost
 
 A LoRA on turbo with about 20 h of audio is a few GPU-hours on a 24 GB card,

@@ -19,6 +19,9 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from rapbench import AUDIO_DIR, load_segments
 
+_venv_ytdlp = Path(sys.executable).parent / "yt-dlp"
+YTDLP = str(_venv_ytdlp) if _venv_ytdlp.exists() else "yt-dlp"   # PATH's copy may be stale
+
 
 def fetch(segment: dict) -> None:
     out = AUDIO_DIR / f"{segment['id']}.wav"
@@ -28,7 +31,7 @@ def fetch(segment: dict) -> None:
     with tempfile.TemporaryDirectory() as tmp:
         src = Path(tmp) / "full.wav"
         subprocess.run(
-            ["yt-dlp", "-x", "--audio-format", "wav", "-o", str(src), segment["url"]],
+            [YTDLP, "-x", "--audio-format", "wav", "-o", str(src), segment["url"]],
             check=True,
         )
         subprocess.run(

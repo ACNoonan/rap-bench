@@ -55,6 +55,10 @@ PICKS = [
     ("Doja Cat", "Jealous Type"),
 ]
 MIN_WIN, MAX_WIN = 25.0, 40.0
+# The venv's yt-dlp, not whatever is first on PATH: YouTube breaks old
+# builds (Homebrew's 2026.07 got HTTP 403 on 2026-10-28).
+_venv_ytdlp = Path(sys.executable).parent / "yt-dlp"
+YTDLP = str(_venv_ytdlp) if _venv_ytdlp.exists() else "yt-dlp"
 DURATION_TOL = 3.0
 
 
@@ -88,7 +92,7 @@ def youtube(artist: str, track: str, want: float) -> tuple[str, float] | None:
     out = ""
     for query in (f"ytsearch5:{artist} {track} official audio", f"ytsearch10:{artist} {track}"):
         out += subprocess.run(
-            ["yt-dlp", query, "--print", "%(id)s\t%(duration)s\t%(title)s", "--skip-download", "--no-warnings"],
+            [YTDLP, query, "--print", "%(id)s\t%(duration)s\t%(title)s", "--skip-download", "--no-warnings"],
             capture_output=True, text=True, timeout=300,
         ).stdout
     for row in out.splitlines():
