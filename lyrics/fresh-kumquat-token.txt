@@ -1,8 +1,5 @@
 # DRAFT from lrclib.net (id 24828500: Token — Kumquat, 175s), trimmed to 46.5-74.8s.
-# Read along with audio/fresh-kumquat-token.wav, fix what's actually rapped,
-# then delete the TODO-VERIFY line below.
-TODO-VERIFY
-So you gotta blame yourself if I hurt you
+# Verified by ear 2026-11-18 (scripts/verify_app.py).
 I was the only one who started ballin'
 When I saw the coffin roll out of the hearse
 My dad's apartment was so fuckin' dirty
@@ -20,4 +17,3 @@ I'm a big dog, get her off like a bus stop
 Got the whole crowd off the ground like a jump shot
 Find a good fuck, fuck on, then I fuck off
 I be closed off, arms crossed like a trust fall
-Spit so hard, rip lung like a blunt cough

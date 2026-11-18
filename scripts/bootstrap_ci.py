@@ -159,10 +159,13 @@ def main() -> None:
         vocab_rows.append(f"| **pooled weights p_b** | {sum(pooled)} | | "
                           + " | ".join(f"{w:.1%}" for w in weights) + " |")
 
-    wer_rows, crit_rows = [], []
+    wer_rows, crit_rows, pool_rows = [], [], []
+    clip_tot: dict[str, dict[str, dict[str, tuple[int, int]]]] = {}  # pop -> run -> clip -> (errors, words)
     for run in runs:
         crit_reps: dict[str, list[tuple[float, str]]] = {}
         point: dict[str, tuple[float, str]] = {}
+        iso_reps: dict[str, list[tuple[float, str]]] = {}
+        iso_point: dict[str, tuple[float, str]] = {}
         bracket: dict[str, str] = {}
         for pop in POPULATIONS:
             ids = [sid for sid, s in segments.items()
@@ -173,7 +176,7 @@ def main() -> None:
             data = {sid: line_errors(refs[sid], (run / f"{sid}.txt").read_text(), bins) for sid in ids}
             rng = random.Random(args.seed)
             seg_reps = {sid: [] for sid in ids}
-            reps = []
+            reps, ireps = [], []
             for _ in range(args.reps):
                 scores = []
                 for sid in ids:
@@ -181,10 +184,33 @@ def main() -> None:
                     seg_reps[sid].append(w)
                     scores.append(SegmentScore(sid, segments[sid]["tier"], segments[sid]["syl_per_sec"], w, 0))
                 reps.append(critical_rate(scores))
-            crit_reps[pop] = reps
+                ireps.append(critical_rate(scores, method="isotonic"))
+            crit_reps[pop], iso_reps[pop] = reps, ireps
+            # Pooled raw WER. Two-stage bootstrap: draw clips, then lines within
+            # each drawn clip, so the interval covers which clips were picked as
+            # well as word noise inside them. Its own rng keeps the critical-rate
+            # replicates above identical to earlier runs.
+            flat = {sid: [(sum(c[0] for c in l), sum(c[1] for c in l)) for l in data[sid]] for sid in ids}
+            clip_tot.setdefault(pop, {})[run.name] = {
+                sid: (sum(e for e, _ in flat[sid]), sum(w for _, w in flat[sid])) for sid in ids}
+            rng2 = random.Random(args.seed + 1)
+            preps = []
+            for _ in range(args.reps):
+                e = w = 0
+                for _ in ids:
+                    ls = flat[ids[rng2.randrange(len(ids))]]
+                    for _ in ls:
+                        le, lw = ls[rng2.randrange(len(ls))]
+                        e += le
+                        w += lw
+                preps.append(e / w)
+            tot = clip_tot[pop][run.name].values()
+            pool_rows.append(f"| {run.name} | {pop} | {sum(e for e, _ in tot) / sum(w for _, w in tot):.1%} | "
+                             f"{pct(preps, .025):.1%}–{pct(preps, .975):.1%} | {len(ids)} | {sum(w for _, w in tot)} |")
             full = [SegmentScore(sid, segments[sid]["tier"], segments[sid]["syl_per_sec"],
                                  wer_of(data[sid], weights), 0) for sid in ids]
             point[pop] = critical_rate(full)
+            iso_point[pop] = critical_rate(full, method="isotonic")
             # the pair of tested rates the point estimate's crossing sits between
             rates = sorted({s.syl_per_sec for s in full})
             r, q = point[pop]
@@ -205,17 +231,47 @@ def main() -> None:
             vals = [r for r, _ in reps]
             cens = sum(q != "=" for _, q in reps) / len(reps)
             r, q = point[pop]
-            crit_rows.append(f"| {run.name} | {pop} | {q if q != '=' else ''}{r:.1f} | "
+            ir, iq = iso_point[pop]
+            ivals = [x for x, _ in iso_reps[pop]]
+            crit_rows.append(f"| {run.name} | {pop} | {iq if iq != '=' else ''}{ir:.1f} | "
+                             f"{pct(ivals, .025):.1f}–{pct(ivals, .975):.1f} | "
+                             f"{q if q != '=' else ''}{r:.1f} | "
                              f"{pct(vals, .025):.1f}–{pct(vals, .975):.1f} | {bracket[pop]} | {cens:.0%} |")
         # exhibition − fresh is the memorization delta on human vocals (DESIGN.md
         # v3); fresh − core is human vs synthetic vocals. A delta between end
         # points is meaningless, so it is only reported when both curves cross.
         for a, b in DELTAS:
-            if {a, b} <= crit_reps.keys() and point[a][1] == point[b][1] == "=":
-                d = [x[0] - y[0] for x, y in zip(crit_reps[a], crit_reps[b])]
-                pd = point[a][0] - point[b][0]
-                crit_rows.append(f"| {run.name} | **delta** ({a} − {b}) | {pd:+.1f} | "
-                                 f"{pct(d, .025):+.1f} to {pct(d, .975):+.1f} | | |")
+            if not {a, b} <= crit_reps.keys():
+                continue
+            cells = []
+            for pt, rp in ((iso_point, iso_reps), (point, crit_reps)):
+                if pt[a][1] == pt[b][1] == "=":
+                    d = [x[0] - y[0] for x, y in zip(rp[a], rp[b])]
+                    cells += [f"{pt[a][0] - pt[b][0]:+.1f}", f"{pct(d, .025):+.1f} to {pct(d, .975):+.1f}"]
+                else:
+                    cells += ["", ""]
+            if any(cells):
+                crit_rows.append(f"| {run.name} | **delta** ({a} − {b}) | " + " | ".join(cells) + " | | |")
+
+    # Paired differences in pooled WER against the best model, per population
+    # with at least 10 clips. Whole clips are the unit and every replicate
+    # draws the same clips for both models, so clip difficulty cancels.
+    pair_rows = []
+    for pop, by_run in clip_tot.items():
+        common = sorted(set.intersection(*(set(v) for v in by_run.values())))
+        if len(common) < 10:
+            continue
+        pw = lambda name, idx: sum(by_run[name][c][0] for c in idx) / sum(by_run[name][c][1] for c in idx)
+        best = min(by_run, key=lambda name: pw(name, common))
+        rng3 = random.Random(args.seed + 2)
+        draws = [[common[rng3.randrange(len(common))] for _ in common] for _ in range(args.reps)]
+        for name in sorted(by_run, key=lambda name: pw(name, common)):
+            if name == best:
+                continue
+            d = [pw(name, idx) - pw(best, idx) for idx in draws]
+            pair_rows.append(f"| {pop} | {name} | {pw(name, common):.1%} | {best} | {pw(best, common):.1%} | "
+                             f"{100 * (pw(name, common) - pw(best, common)):+.1f} | "
+                             f"{100 * pct(d, .025):+.1f} to {100 * pct(d, .975):+.1f} | {len(common)} |")
 
     out = [
         "# rap-bench confidence intervals",
@@ -224,15 +280,38 @@ def main() -> None:
         f"rates: {args.rate}; vocabulary adjustment: {args.adjust}; "
         "95% percentile intervals. Written by `scripts/bootstrap_ci.py`; see its docstring for the design.",
         "",
+        "## Pooled WER",
+        "",
+        "Errors over reference words across a population's clips, raw (no vocabulary adjustment). "
+        "Two-stage bootstrap: clips are drawn with replacement, then lines within each drawn clip. "
+        "With 2 core clips and 6 or 7 exhibition clips the interval is wide because the clip draw dominates.",
+        "",
+        "| model | population | pooled WER | 95% CI | clips | words |",
+        "|---|---|---|---|---|---|",
+        *pool_rows,
+        "",
+        "## Paired difference in pooled WER against the best model",
+        "",
+        "Populations with at least 10 clips. Clip-level paired bootstrap: each replicate draws the same "
+        "clips for both models. Difference in WER points, model − best.",
+        "",
+        "| population | model | pooled WER | best | pooled WER | difference | 95% CI | clips |",
+        "|---|---|---|---|---|---|---|---|",
+        *pair_rows,
+        "",
         "## Critical rate",
+        "",
+        "`isotonic fit` is the crossing on the best non-decreasing curve through the points. "
+        "`running max` is the metric as registered: it stops at the first failing point "
+        "(LOG.md, 2026-11-18). The bracket and censored columns describe the running max.",
         "",
         "`bracket` is the pair of tested rates the crossing is interpolated between: the bootstrap "
         "interval assumes a straight line inside it, so the bracket is the honest bound on curve shape. "
         f"`censored` is the share of replicates where the curve never crossed {SURVIVAL_WER:.0%} "
         "or failed at the slowest point; those replicates sit at an end point and narrow the interval.",
         "",
-        "| model | population | critical rate | 95% CI | bracket | censored |",
-        "|---|---|---|---|---|---|",
+        "| model | population | isotonic fit | 95% CI | running max | 95% CI | bracket | censored |",
+        "|---|---|---|---|---|---|---|---|",
         *crit_rows,
         "",
         "## WER per segment",

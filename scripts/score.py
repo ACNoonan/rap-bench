@@ -18,7 +18,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from rapbench import LYRICS_DIR, OUTPUTS_DIR, RESULTS_DIR, load_segments
-from rapbench.scoring import SURVIVAL_WER, TIER_ORDER, critical_rate, score_segment
+from rapbench.scoring import SURVIVAL_WER, TIER_ORDER, critical_rate, pooled_wer, score_segment
 
 POPULATIONS = ["exhibition", "core", "fresh"]
 
@@ -66,12 +66,19 @@ def main() -> None:
         f"Cells are `WER · RTF` (batch); survival threshold {SURVIVAL_WER:.0%}; "
         "💀 = over threshold, 🐢 = accurate but slower than real time.",
         "",
-        "**Critical rate** (primary metric): interpolated syl/sec where the "
-        "WER-vs-rate curve crosses the threshold, on an isotonic envelope; "
-        "`>x` = survived everything tested, `<x` = failed the slowest point. "
-        "**Live** variant treats RTF ≥ 1 as total failure. Populations are "
-        "scored separately — exhibition tracks are training-contaminated, "
-        "core is synthetic/unseen (see DESIGN.md).",
+        "**Pooled WER** (headline since 2026-11-18): errors over reference words "
+        "across the population's segments. Intervals and paired model differences "
+        "are in ci-mean.md.",
+        "",
+        "**Critical rate**: interpolated syl/sec where the WER-vs-rate curve "
+        "crosses the threshold; `>x` = survived everything tested, `<x` = failed "
+        "the slowest point. `isotonic fit` uses the best non-decreasing curve "
+        "through the points. `running max` is the metric as registered in "
+        "DESIGN.md v2: it stops at the first failing point, so one hard slow clip "
+        "decides it (LOG.md, 2026-11-18). **Live** treats RTF ≥ 1 as total "
+        "failure, on the running max. Populations are scored separately: "
+        "exhibition tracks are training-contaminated, core is synthetic, fresh is "
+        "real tracks released after the models (see DESIGN.md).",
         "",
     ]
 
@@ -89,8 +96,9 @@ def main() -> None:
         lines += [
             f"## {pop}",
             "",
-            "| model | " + " | ".join(ordered) + " | critical rate | live critical rate |",
-            "|---" * (len(ordered) + 3) + "|",
+            "| model | pooled WER | critical rate (isotonic fit) | running max (registered) | live | "
+            + " | ".join(ordered) + " |",
+            "|---" * (len(ordered) + 5) + "|",
         ]
         for run in runs:
             scores, cells = [], []
@@ -116,8 +124,11 @@ def main() -> None:
                 continue
             crit = fmt_crit(*critical_rate(scores))
             crit_live = fmt_crit(*critical_rate(scores, live=True))
-            lines.append(f"| {run.name} | " + " | ".join(cells) + f" | {crit} | {crit_live} |")
-            print(f"[{pop}] {run.name}: critical rate {crit}, live {crit_live} syl/s")
+            iso = fmt_crit(*critical_rate(scores, method="isotonic"))
+            lines.append(f"| {run.name} | {pooled_wer(scores):.1%} | {iso} | {crit} | {crit_live} | "
+                         + " | ".join(cells) + " |")
+            print(f"[{pop}] {run.name}: pooled WER {pooled_wer(scores):.1%}, critical rate {iso} "
+                  f"(running max {crit}, live {crit_live}) syl/s")
         lines += [
             "",
             "Segments easy → hard: "

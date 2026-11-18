@@ -21,6 +21,8 @@ class SegmentScore:
     wer: float
     ref_words: int
     rtf: float | None = None  # transcription seconds per audio second
+    errors: int = 0  # substitutions + deletions + insertions, on the ad-lib variant that scored best
+    words: int = 0   # reference words in that variant; pooled WER = sum(errors) / sum(words)
 
     @property
     def survived(self) -> bool:
@@ -41,14 +43,28 @@ def score_segment(
     a model shouldn't lose points for hearing more of the track."""
     hyp = normalize(hypothesis)
     variants = {normalize(reference, strip_adlibs=s) for s in (True, False)}
+    best = None
+    for ref in variants:
+        o = jiwer.process_words(ref, hyp)
+        e, n = o.substitutions + o.deletions + o.insertions, o.hits + o.substitutions + o.deletions
+        if best is None or e / n < best[0] / best[1]:
+            best = (e, n)
     return SegmentScore(
         segment_id=segment["id"],
         tier=segment["tier"],
         syl_per_sec=segment["syl_per_sec"],
-        wer=min(jiwer.wer(ref, hyp) for ref in variants),
+        wer=best[0] / best[1],
         ref_words=len(normalize(reference).split()),
         rtf=rtf,
+        errors=best[0],
+        words=best[1],
     )
+
+
+def pooled_wer(scores: list[SegmentScore]) -> float:
+    """Errors over reference words across segments. Long clips count for
+    more than short ones, and no single clip decides the number."""
+    return sum(s.errors for s in scores) / sum(s.words for s in scores)
 
 
 def max_clean_rate(scores: list[SegmentScore]) -> float:
@@ -64,7 +80,8 @@ def max_live_rate(scores: list[SegmentScore]) -> float:
 
 
 def critical_rate(
-    scores: list[SegmentScore], threshold: float = SURVIVAL_WER, live: bool = False
+    scores: list[SegmentScore], threshold: float = SURVIVAL_WER, live: bool = False,
+    method: str = "running_max",
 ) -> tuple[float, str]:
     """Primary v2 metric (DESIGN.md): the interpolated syl/sec at which the
     WER-vs-rate curve crosses `threshold`.
@@ -76,6 +93,15 @@ def critical_rate(
       at a higher rate doesn't restore credit. Conservative by design.
     - With live=True, a segment slower than real time (RTF >= 1, or no
       timing recorded) counts as a total live failure (WER treated as 1.0).
+
+    method="running_max" is the metric as registered in DESIGN.md v2. It
+    returns the first point over the threshold, so with many clips at
+    distinct rates one hard slow clip decides it (LOG.md, 2026-11-18: every
+    model scored <4.4 on fresh). method="isotonic" fits the best
+    non-decreasing curve by least squares instead (pool-adjacent-violators):
+    a point that breaks the order is averaged with its neighbours rather
+    than carried forward, so the crossing reflects the trend across clips.
+    Each tested rate counts once.
 
     Returns (rate, qualifier): qualifier is "=" for an interpolated
     crossing, "<" if even the slowest point fails (rate is that slowest
@@ -90,10 +116,20 @@ def critical_rate(
     if not by_rate:
         return 0.0, "<"
     pts = sorted((r, sum(ws) / len(ws)) for r, ws in by_rate.items())
-    env, running = [], 0.0
-    for r, w in pts:
-        running = max(running, w)
-        env.append((r, running))
+    if method == "isotonic":
+        blocks: list[list] = []  # [mean WER, count, rates]
+        for r, w in pts:
+            blocks.append([w, 1, [r]])
+            while len(blocks) > 1 and blocks[-2][0] > blocks[-1][0]:
+                w2, n2, r2 = blocks.pop()
+                w1, n1, r1 = blocks.pop()
+                blocks.append([(w1 * n1 + w2 * n2) / (n1 + n2), n1 + n2, r1 + r2])
+        env = [(r, w) for w, _, rs in blocks for r in rs]
+    else:
+        env, running = [], 0.0
+        for r, w in pts:
+            running = max(running, w)
+            env.append((r, running))
     if env[0][1] >= threshold:
         return env[0][0], "<"
     for (r1, w1), (r2, w2) in zip(env, env[1:]):

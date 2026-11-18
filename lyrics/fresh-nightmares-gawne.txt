@@ -1,8 +1,6 @@
 # DRAFT from lrclib.net (id 32430950: GAWNE — Nightmares, 169s), trimmed to 49.1-74.4s.
-# Read along with audio/fresh-nightmares-gawne.wav, fix what's actually rapped,
-# then delete the TODO-VERIFY line below.
-TODO-VERIFY
-These nightmares
+# Verified by ear 2026-11-17 (scripts/verify_app.py).
+(These nightmares)
 Will you pray for me, a martyr?
 Lamb goes to the slaughter
 Fire's on the land

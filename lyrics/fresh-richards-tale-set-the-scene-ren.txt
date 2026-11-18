@@ -1,8 +1,7 @@
 # DRAFT from lrclib.net (id 28163582: Ren — Richard's Tale - Set The Scene, 60s), trimmed to 16.1-41.9s.
-# Read along with audio/fresh-richards-tale-set-the-scene-ren.wav, fix what's actually rapped,
-# then delete the TODO-VERIFY line below.
-TODO-VERIFY
-Richard, and a boy named Screech
+# Verified by ear 2026-11-18 (scripts/verify_app.py).
+# NOTE: Starts most of the way through the word screech from the previous bar
+Screech
 The hands of fate, they touch and reach
 Siblings buried, blood, it bleeds, etched in Richard's memories
 Thoughts are muddled, troubled sleep, takes a time of absent leave
@@ -14,4 +13,3 @@ And this po-po went loco in woe, so low that his mojo no more
 No rebound, no yo-yo and so, the time it moves slo-mo, you see the
 Case was never closed 'cause the motive was confusing
 Orphan killed his sister, but his sister was removed when
-The mother died in child birth, but dying womb life bring

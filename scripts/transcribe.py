@@ -15,6 +15,12 @@ Backends (install what you use):
                             default mlx-community/whisper-large-v3-turbo)
     parakeet:<hf-repo>      pip install parakeet-mlx  (NVIDIA Parakeet on
                             Apple GPU; default mlx-community/parakeet-tdt-0.6b-v2)
+    openrouter:<model-id>   hosted models through OpenRouter's speech-to-text
+                            endpoint, e.g. openrouter:elevenlabs/scribe-v2.
+                            Paid. Reads OPENROUTER_API_KEY from the environment
+                            or .env. Sends the clip's audio to the provider.
+                            The .time file includes the network round trip, so
+                            RTF is not comparable with the local backends.
 
 Adding a backend (nemo/parakeet, kyutai, voxtral, your own service): write a
 load(variant) -> model and a transcribe(model, audio_path) -> str, register
@@ -101,12 +107,57 @@ def run_parakeet(model, path: Path) -> str:
     return model.transcribe(str(path)).text.strip()
 
 
+def load_openrouter(variant: str):
+    import os
+
+    key = os.environ.get("OPENROUTER_API_KEY")
+    env = Path(__file__).resolve().parent.parent / ".env"
+    if not key and env.exists():
+        for line in env.read_text().splitlines():
+            if line.startswith("OPENROUTER_API_KEY="):
+                key = line.split("=", 1)[1].strip().strip("'\"")
+    if not key:
+        sys.exit("OPENROUTER_API_KEY not set (environment or .env)")
+    return {"model": variant, "key": key, "cost": 0.0}
+
+
+def run_openrouter(model, path: Path) -> str:
+    import base64
+    import json
+    import urllib.error
+    import urllib.request
+
+    body = json.dumps({
+        "model": model["model"],
+        "input_audio": {"data": base64.b64encode(path.read_bytes()).decode(), "format": "wav"},
+        "language": "en",
+    }).encode()
+    for attempt in range(4):
+        req = urllib.request.Request(
+            "https://openrouter.ai/api/v1/audio/transcriptions", data=body,
+            headers={"Authorization": f"Bearer {model['key']}", "Content-Type": "application/json"})
+        try:
+            with urllib.request.urlopen(req, timeout=300) as r:
+                out = json.loads(r.read())
+            break
+        except urllib.error.HTTPError as e:
+            msg = e.read().decode(errors="replace")[:400]
+            if e.code not in (429, 500, 502, 503, 504, 524, 529) or attempt == 3:
+                sys.exit(f"openrouter {e.code} for {model['model']}: {msg}")
+            time.sleep(5 * (attempt + 1))
+    usage = out.get("usage") or {}
+    model["cost"] += float(usage.get("cost") or 0)
+    model["usage"] = usage
+    return (out.get("text") or "").strip()
+
+
 BACKENDS = {
     "faster-whisper": (load_faster_whisper, run_faster_whisper),
     "whisper": (load_openai_whisper, run_openai_whisper),
     "hf": (load_hf_pipeline, run_hf_pipeline),
     "mlx-whisper": (load_mlx_whisper, run_mlx_whisper),
     "parakeet": (load_parakeet, run_parakeet),
+    "openrouter": (load_openrouter, run_openrouter),
 }
 
 
@@ -114,6 +165,7 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", required=True, help="backend:variant, e.g. faster-whisper:large-v3")
     parser.add_argument("--source", choices=["raw", "vocals"], default="raw")
+    parser.add_argument("--skip-existing", action="store_true", help="skip segments that already have a transcript")
     parser.add_argument("segments", nargs="*", help="segment ids (default: all)")
     args = parser.parse_args()
 
@@ -134,6 +186,8 @@ def main() -> None:
         if not path.exists():
             print(f"  {seg['id']}: missing {path}, skipping")
             continue
+        if args.skip_existing and (out_dir / f"{seg['id']}.txt").exists():
+            continue
         if model is None:
             model = load(variant)
         t0 = time.perf_counter()
@@ -143,6 +197,8 @@ def main() -> None:
         (out_dir / f"{seg['id']}.time").write_text(f"{elapsed:.3f}\n")
         audio_secs = seg["end"] - seg["start"]
         print(f"  {seg['id']}: {len(text.split())} words, RTF {elapsed / audio_secs:.2f}")
+    if isinstance(model, dict) and "cost" in model:
+        print(f"  reported cost: ${model['cost']:.4f}; last usage: {model.get('usage')}")
 
 
 if __name__ == "__main__":

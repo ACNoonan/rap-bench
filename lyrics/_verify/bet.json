@@ -1,0 +1,12 @@
+{
+ "date": "2026-11-17",
+ "t": 1794924951.0,
+ "skipped": true,
+ "large_v3_fresh_critical_rate": null,
+ "large_v3_exhibition_minus_fresh": null,
+ "parakeet_exhibition_minus_fresh": null,
+ "turbo_base_fresh_critical_rate": null,
+ "turbo_lora_e3_fresh_critical_rate": null,
+ "large_v3_wer_shift_draft_to_verified": null,
+ "reasoning": null
+}

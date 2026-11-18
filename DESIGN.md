@@ -132,8 +132,11 @@ whisper turbo 2024-10, moonshine 2024-10, parakeet v2 2025-05-01.
   (between core 6.1 and exhibition 8.0); large-v3 exhibition − fresh
   delta **+1.0**, with an interval that still includes zero unless n ≥ 15;
   parakeet delta **≈ 0**.
-- Adam: _(fill in before verifying lyrics, since verification is what
-  unlocks the scores)_
+- Adam (2026-11-17): skipped. No bet was recorded before verification
+  (`lyrics/_verify/bet.json`).
+- Outcome (2026-11-18, LOG.md): all three of Claude's bets miss on the
+  metric as registered. Every model's fresh critical rate is `<4.4`, because
+  the slowest fresh clip fails and the running max carries that forward.
 
 ## Pre-requisites still open from v2
 
@@ -261,7 +264,10 @@ Target size for the first run: about 20 hours.
   base is itself a guess until v3 is scored). DPO on top adds **under 0.5**.
   Clean-speech WER moves less than 1 point. The main risk is voice
   memorization, which the artist hold-out is there to catch.
-- Adam: _(blank)_
+- Adam: no bet recorded.
+- Outcome (2026-11-18, LOG.md): wrong. Turbo's fresh critical rate is `<4.4`
+  with and without the adapter, and on pooled fresh WER the guarded e3
+  adapter is +1.7 points against the guarded base (95% CI −0.2 to +3.9).
 
 ## Decisions fixed before the first run (2026-10-28, after hostile review)
 
@@ -283,6 +289,66 @@ Target size for the first run: about 20 hours.
   held out with the other exhibition guests. I did not check guest credits
   on the fresh tracks beyond the primary artist; the 8-gram check covers the
   songs, not the voices.
+
+## Secondary analysis: decoding with loop guards (2026-11-03, before the run)
+
+Run 1 (LOG.md, 2026-11-01) decoded greedily with no fallback. At e3, two of
+the nine scored clips fell into repetition loops: godzilla-v3 went from 30 to
+100% and suno02 from 47 to 243%. The question here is whether the adapter
+hurt hearing or only made loops likelier. `scripts/eval_adapters.py`
+re-transcribes base, e1, e2 and e3 with the saved adapters and whisper's
+standard guards: temperature fallback 0.0 to 1.0, compression-ratio
+threshold 1.35 and log-prob threshold −1.0. Sampling reseeds per clip, so a
+rerun matches. No retraining.
+
+- **The as-run e3 stays the headline.** This analysis is secondary and is
+  reported next to it, never instead of it.
+- **Guarded base is the comparison for guarded adapters.** Never compare
+  guarded against unguarded.
+- **Loop measure, fixed now:** a clip loops when at least 30% of its 4-word
+  windows belong to a 4-gram that occurs 4+ times
+  (`score_finetune.py`). It was chosen after run 1, so it was not
+  pre-registered for that run.
+- **Known risk:** on whisper-tiny the guard cut loops to zero but shrank
+  rap-god-fast from 115 words to 20. The guard can trade insertions for
+  deletions. WER counts both, and the word counts get reported.
+
+Claude's predictions, on the scored exhibition and core clips and val:
+
+1. Guarded e3 loops on 0 of the 9 scored clips, and on at most 2 of the 136
+   val chunks.
+2. Guarded e3 exhibition WER, pooled, is within 2 points of guarded base.
+   The adapter didn't hurt hearing, but it didn't help much either.
+3. Guarded e3 val WER beats guarded base by at least 1.5 points. That's the
+   in-distribution gain.
+4. Clean WER moves less than 1 point.
+5. The D1 gap on twista and rap-god-fast (±55 points against faster-whisper
+   turbo) shrinks below 20 points on both. faster-whisper's guards are
+   similar but not the same: a gzip ratio of 2.4 on text, where
+   transformers uses 1.35 on tokens.
+
+Rules fixed with the predictions (after hostile review, 2026-11-03):
+
+- **Instrument pass for the guarded base:** median |guarded base −
+  faster-whisper turbo| ≤ 5 WER points on the 9 scored clips, the same rule
+  as run 1. If it fails, the guarded comparisons are discarded.
+- **Point estimates decide predictions 2 to 4.** Each is reported with a
+  paired line-level bootstrap 95% interval. When that interval includes zero,
+  the result reads as "consistent with no change", whichever side of the
+  line the point lands on. With n=7 exhibition clips, one clip moving 20
+  points can flip prediction 2, so per-clip numbers are reported alongside.
+- **No mixing:** guarded transcripts are compared only with guarded ones.
+  Any `score.py` table that holds both labels which is which.
+
+Disclosure: after writing these predictions and before the run, I
+transcribed godzilla-v3 and suno02 locally with e3 plus the guard. The point
+was to check the guard isn't a no-op on turbo. Both stopped looping
+(godzilla-v3 37% WER at 220 words against 227; suno02 54% at 128 against
+118). The predictions above weren't changed after seeing this.
+
+If prediction 2 fails in the adapter's favour, that's evidence for hearing
+fast rap better, pending the fresh tier. If it fails the other way, the
+adapter hurts even with the loops removed.
 
 ## Cost
 

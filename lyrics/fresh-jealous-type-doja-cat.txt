@@ -1,7 +1,6 @@
 # DRAFT from lrclib.net (id 23657021: Doja Cat — Jealous Type, 164s), trimmed to 77.0-103.1s.
-# Read along with audio/fresh-jealous-type-doja-cat.wav, fix what's actually rapped,
-# then delete the TODO-VERIFY line below.
-TODO-VERIFY
+# Verified by ear 2026-11-17 (scripts/verify_app.py).
+# NOTE: "Oh, I'm jealous, baby, I'm the jealous type" -- is vaguely there, but the chorus, and hard to distinguish from the background music - I'd lean towards dropping it but not sure if we've decided how this gets handled yet. I say drop it, but dont penalize the AI for transcribing those words since its chorus and not the focus.
 Oh, I'm jealous, baby, I'm the jealous type
 I said, "You wanna do what now with who?"
 I don't need a pin-drop or a text tonight

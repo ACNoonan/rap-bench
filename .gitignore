@@ -11,3 +11,6 @@ __pycache__/
 
 # v4 training set: whole-song audio and lyrics, local + GPU box only
 train/
+
+# API keys
+.env

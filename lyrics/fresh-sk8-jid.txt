@@ -1,8 +1,6 @@
 # DRAFT from lrclib.net (id 23348590: JID — Sk8, 190s), trimmed to 12.9-39.5s.
-# Read along with audio/fresh-sk8-jid.wav, fix what's actually rapped,
-# then delete the TODO-VERIFY line below.
-TODO-VERIFY
-Kilo Ali flow, look, uh
+# Verified by ear 2026-11-18 (scripts/verify_app.py).
+# NOTE: ends early - part way through the last word "aint", gets most of the way through that word
 Niggas from the Eastside on a Friday night
 Met a bunch of hoes at the Golden Glide
 Smokin' and rollin', the lows and highs
@@ -17,4 +15,4 @@ Probably the reason you die tryna feel alive
 But I'm incentivized by a dime that's thick in her thighs
 Grippin' on her ass like I'm pickin' a prize
 Then hit the crib where the weed and the liquor collide
-But really ain't trippin', we can kick it and ride through the, yeah, uh, shit
+But really ain't

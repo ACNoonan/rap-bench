@@ -1,6 +1,7 @@
 # DRAFT from lrclib.net (id 26702418: Tech N9ne — The Nice One, 267s), trimmed to 111.0-140.8s.
 # Read along with audio/fresh-the-nice-one-tech-n9ne.wav, fix what's actually rapped,
 # then delete the TODO-VERIFY line below.
+# NOTE: Adam, 2026-11-18: the audio in this window does not contain these lyrics at all. Excluded from scoring until the window is fixed.
 TODO-VERIFY
 She had the music loud on some crazy shit
 She welcomed us in, now the fun gonna begin

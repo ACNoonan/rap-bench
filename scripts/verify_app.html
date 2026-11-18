@@ -1,0 +1,387 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lyric Verify</title>
+<style>
+:root { --bg:#f7f6f2; --card:#fff; --ink:#1d1d1b; --muted:#6b6a65; --line:#e3e1da; --accent:#2f5d8a; --pick:#dbe7f3; --ok:#2e7d4f; --warn:#a4541a; --loop:#f0d9a8; }
+@media (prefers-color-scheme: dark) { :root { --bg:#161615; --card:#1f1f1d; --ink:#ecebe6; --muted:#9b9a94; --line:#34332f; --accent:#8db6e0; --pick:#22364a; --ok:#7cc79a; --warn:#e0a26b; --loop:#5a4a22; } }
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.5 -apple-system, system-ui, sans-serif; }
+.hidden { display:none !important; }
+.muted { color:var(--muted); font-size:14px; }
+.card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:16px; }
+.btn { padding:9px 14px; border-radius:8px; border:1px solid var(--accent); background:var(--accent); color:var(--bg); font:inherit; font-weight:600; cursor:pointer; }
+.btn.ghost { background:transparent; color:var(--accent); }
+.btn.small { padding:5px 10px; font-size:14px; font-weight:500; }
+.btn:disabled { opacity:.4; cursor:not-allowed; }
+kbd { font:12px ui-monospace, Menlo, monospace; border:1px solid var(--line); border-bottom-width:2px; border-radius:5px; padding:1px 5px; background:var(--bg); white-space:nowrap; }
+
+/* bet */
+#bet { max-width:760px; margin:0 auto; padding:32px 16px 64px; }
+#bet h1 { font-size:22px; margin:0 0 4px; }
+.betrow { display:grid; grid-template-columns:1fr 150px; gap:16px; align-items:center; padding:14px 0; border-top:1px solid var(--line); }
+.betrow:first-of-type { border-top:0; }
+.betrow b { display:block; }
+.betrow input { width:100%; padding:9px 10px; font:inherit; font-variant-numeric:tabular-nums; border:1px solid var(--line); border-radius:8px; background:var(--bg); color:var(--ink); }
+.pairin { display:grid; gap:6px; }
+@media (max-width:600px) { .betrow { grid-template-columns:1fr; } }
+
+/* app */
+#app { display:grid; grid-template-columns:290px 1fr; height:100vh; }
+aside { border-right:1px solid var(--line); overflow:auto; padding:16px 10px; }
+aside h1 { font-size:17px; margin:0 6px 2px; }
+#progress { margin:0 6px 10px; }
+.bar { height:6px; background:var(--line); border-radius:3px; margin:6px 6px 14px; overflow:hidden; }
+.bar > div { height:100%; background:var(--ok); width:0; transition:width .2s; }
+.clip { display:grid; grid-template-columns:20px 1fr auto; gap:6px; align-items:center; width:100%; text-align:left; padding:7px 6px; border:0; border-radius:8px; background:transparent; color:var(--ink); font:inherit; font-size:14px; cursor:pointer; }
+.clip:hover { background:var(--pick); }
+.clip.on { background:var(--pick); outline:1px solid var(--accent); }
+.clip .dot { color:var(--line); font-size:15px; }
+.clip.done .dot { color:var(--ok); }
+.clip .t { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.clip .a { display:block; color:var(--muted); font-size:12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.clip .r { color:var(--muted); font-size:12px; font-variant-numeric:tabular-nums; }
+main { overflow:auto; padding:20px 24px 40px; }
+.wrap { max-width:900px; margin:0 auto; display:grid; gap:14px; }
+#player { position:sticky; top:-20px; z-index:2; box-shadow:0 6px 14px -10px rgba(0,0,0,.35); }
+#work > .head { margin-bottom:0; }
+.head { display:flex; justify-content:space-between; align-items:baseline; gap:12px; flex-wrap:wrap; }
+.head h2 { margin:0; font-size:21px; }
+.pill { font-size:12px; padding:2px 9px; border-radius:99px; border:1px solid var(--line); color:var(--muted); }
+.pill.ok { color:var(--ok); border-color:var(--ok); }
+
+.transport { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+#play { width:46px; height:46px; border-radius:50%; padding:0; font-size:18px; }
+#time { font:14px ui-monospace, Menlo, monospace; color:var(--muted); min-width:104px; }
+.seg { display:inline-flex; border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+.seg button { border:0; background:transparent; color:var(--ink); padding:6px 10px; font:inherit; font-size:14px; cursor:pointer; font-variant-numeric:tabular-nums; }
+.seg button + button { border-left:1px solid var(--line); }
+.seg button.on { background:var(--pick); color:var(--accent); font-weight:600; }
+#track { position:relative; height:34px; margin-top:14px; background:var(--bg); border:1px solid var(--line); border-radius:8px; cursor:ew-resize; overflow:hidden; touch-action:none; user-select:none; }
+#head { width:3px !important; }
+#fill { position:absolute; inset:0 auto 0 0; width:0; background:var(--pick); }
+#ab { position:absolute; top:0; bottom:0; background:var(--loop); opacity:.75; }
+#head { position:absolute; top:0; bottom:0; width:2px; background:var(--accent); }
+.keys { margin-top:12px; display:flex; flex-wrap:wrap; gap:6px 14px; font-size:13px; color:var(--muted); }
+
+textarea#lyrics { width:100%; min-height:200px; resize:none; overflow:hidden; padding:14px 16px; border:1px solid var(--line); border-radius:10px; background:var(--card); color:var(--ink); font:17px/1.75 ui-monospace, "SF Mono", Menlo, monospace; tab-size:2; }
+textarea#lyrics:focus, input:focus { outline:2px solid var(--accent); outline-offset:-1px; }
+.rules { font-size:14px; color:var(--muted); }
+.rules summary { cursor:pointer; user-select:none; }
+.rules ul { margin:6px 0 0; padding-left:18px; }
+.rules li { margin:2px 0; }
+.foot { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+.foot input[type=text] { flex:1; min-width:220px; padding:9px 10px; font:inherit; border:1px solid var(--line); border-radius:8px; background:var(--card); color:var(--ink); }
+.foot label { font-size:14px; display:flex; gap:6px; align-items:center; }
+#status { font-size:13px; color:var(--muted); min-height:20px; }
+#status.err { color:var(--warn); }
+@media (max-width:820px) { #app { grid-template-columns:1fr; height:auto; } aside { border-right:0; border-bottom:1px solid var(--line); max-height:38vh; } }
+</style>
+</head>
+<body>
+
+<section id="bet" class="hidden">
+  <h1>Bets first</h1>
+  <p class="muted">Verifying the lyrics is what unlocks the fresh-tier scores, so the bets go in before the first clip. Rates are mean syllables per second. The critical rate is where WER crosses 25%. They're written once and can't be edited here.</p>
+  <div class="card">
+    <div class="betrow">
+      <div><b>1. whisper large-v3 critical rate on fresh tracks</b>
+        <span class="muted">Famous tracks: 8.0 (CI 5.8–10.3). Suno verses: 6.1. Claude bet 7.0.</span></div>
+      <input id="b1" type="number" step="0.1" placeholder="syl/s">
+    </div>
+    <div class="betrow">
+      <div><b>2. large-v3: famous minus fresh</b>
+        <span class="muted">Famous minus Suno was +2.0 (−0.4 to +4.3). Claude bet +1.0, with an interval that includes zero.</span></div>
+      <input id="b2" type="number" step="0.1" placeholder="syl/s, signed">
+    </div>
+    <div class="betrow">
+      <div><b>3. parakeet: famous minus fresh</b>
+        <span class="muted">Famous 5.6, Suno 5.9, so −0.2. Claude bet about 0.</span></div>
+      <input id="b3" type="number" step="0.1" placeholder="syl/s, signed">
+    </div>
+    <div class="betrow">
+      <div><b>4. whisper turbo critical rate on fresh: base, then with the LoRA (e3)</b>
+        <span class="muted">On famous tracks the guarded adapter was 2.0 WER points worse, interval includes zero. Claude bet 6.5 then 8.0, before the run.</span></div>
+      <div class="pairin"><input id="b4a" type="number" step="0.1" placeholder="base"><input id="b4b" type="number" step="0.1" placeholder="LoRA e3"></div>
+    </div>
+    <div class="betrow">
+      <div><b>5. Optional: how far large-v3's fresh WER moves when the reference switches from the LRCLIB draft to your verified text</b>
+        <span class="muted">In WER points. Negative means the verified text scores lower. Claude bet −4 (unsure).</span></div>
+      <input id="b5" type="number" step="0.5" placeholder="points, signed">
+    </div>
+    <div class="betrow">
+      <div><b>Reasoning, if you want it on record</b></div><span></span>
+    </div>
+    <textarea id="bnote" style="width:100%;min-height:70px;padding:10px;font:inherit;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)"></textarea>
+    <div class="foot" style="margin-top:14px">
+      <button class="btn" id="betSave">Record bets and start listening</button>
+      <button class="btn ghost" id="betSkip">Skip the bets</button>
+      <span id="betStatus" class="muted"></span>
+    </div>
+  </div>
+</section>
+
+<section id="app" class="hidden">
+  <aside>
+    <h1>Fresh-tier lyrics</h1>
+    <div id="progress" class="muted"></div>
+    <div class="bar"><div id="barfill"></div></div>
+    <div id="list"></div>
+  </aside>
+  <main>
+    <div class="wrap" id="work">
+      <div class="head">
+        <div><h2 id="title"></h2><span class="muted" id="sub"></span></div>
+        <span class="pill" id="pill"></span>
+      </div>
+
+      <div class="card" id="player">
+        <div class="transport">
+          <button class="btn" id="play" title="Play or pause">▶</button>
+          <span id="time">0:00.0 / 0:00.0</span>
+          <span class="seg" id="speeds"></span>
+          <span class="seg">
+            <button id="setA" title="Loop from here">A</button>
+            <button id="setB" title="Loop to here">B</button>
+            <button id="clearAB" title="Loop the whole clip">whole clip</button>
+          </span>
+          <span class="muted" id="abtxt"></span>
+        </div>
+        <div id="track"><div id="fill"></div><div id="ab" class="hidden"></div><div id="head"></div></div>
+        <div class="keys">
+          <span><kbd>Esc</kbd> play / pause</span>
+          <span><kbd>Ctrl J</kbd> back 2 s</span>
+          <span><kbd>Ctrl L</kbd> forward 2 s</span>
+          <span><kbd>Ctrl H</kbd> loop start</span>
+          <span><kbd>Ctrl I</kbd> <kbd>Ctrl O</kbd> set A, B</span>
+          <span><kbd>Ctrl P</kbd> whole clip</span>
+          <span><kbd>Ctrl ,</kbd> <kbd>Ctrl .</kbd> slower, faster</span>
+          <span><kbd>⌘ Enter</kbd> verified, next</span>
+        </div>
+        <audio id="audio" preload="auto"></audio>
+      </div>
+
+      <details class="rules" id="rules">
+        <summary>Rules: write what's rapped, and put ad-libs and non-lead vocals in (parentheses)</summary>
+        <ul>
+          <li>Write what is actually rapped, not what was published.</li>
+          <li>Delete an opening or closing line that falls outside the clip. The draft pads 3 s before the window.</li>
+          <li>Put anything that isn't the lead rapper's main line in (parentheses): the lead's own ad-libs ("yeah", "uh", doubled words), a sung hook, a chorus, a background singer. Still write the words as heard.</li>
+          <li>Parenthesised words are optional in scoring. A model is scored against the text with them and without them, and keeps the better result.</li>
+          <li>If the published lyrics don't match the audio at all, leave the clip as a draft and say so in the note.</li>
+          <li>Keep one bar per line. Punctuation and capitals don't affect the score.</li>
+        </ul>
+      </details>
+
+      <textarea id="lyrics" spellcheck="false" autocomplete="off" autocapitalize="off"></textarea>
+
+      <div class="foot">
+        <label><input type="checkbox" id="timing" checked> Clip starts and ends on clean bars</label>
+        <input type="text" id="note" placeholder="Note for the record: cut-off word, wrong window, unsure of a line…">
+      </div>
+      <div class="foot">
+        <button class="btn" id="verify">Mark verified and next</button>
+        <button class="btn ghost" id="unverify">Back to draft</button>
+        <button class="btn ghost small" id="reset">Restore the LRCLIB draft</button>
+        <span id="status"></span>
+      </div>
+    </div>
+    <div class="wrap hidden" id="done">
+      <div class="card"><h2 style="margin:0 0 6px">All clips verified</h2>
+        <p style="margin:0">Tell Claude you're done. It will set the verified flags, score the fresh tier and grade the bets. You can still reopen any clip from the list.</p></div>
+    </div>
+  </main>
+</section>
+
+<script>
+const $ = id => document.getElementById(id);
+const SPEEDS = [0.35, 0.5, 0.65, 0.8, 1];
+const audio = $("audio");
+let clips = [], cur = null, speed = 0.5, A = null, B = null, dirty = false, saveTimer = null, t0 = 0, active = 0, lastTick = 0;
+
+const api = async (path, body) => {
+  const r = await fetch(path, body ? {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)} : {});
+  const j = await r.json().catch(() => ({error: r.statusText}));
+  if (!r.ok) throw new Error(j.error || r.statusText);
+  return j;
+};
+const fmt = s => { s = Math.max(0, s || 0); return Math.floor(s / 60) + ":" + (s % 60).toFixed(1).padStart(4, "0"); };
+const status = (msg, err) => { $("status").textContent = msg; $("status").classList.toggle("err", !!err); };
+
+/* ---------- bet ---------- */
+async function recordBet(skip) {
+  const num = id => $(id).value === "" ? null : Number($(id).value);
+  const b = {skipped: !!skip, large_v3_fresh_critical_rate: num("b1"), large_v3_exhibition_minus_fresh: num("b2"),
+             parakeet_exhibition_minus_fresh: num("b3"), turbo_base_fresh_critical_rate: num("b4a"),
+             turbo_lora_e3_fresh_critical_rate: num("b4b"), large_v3_wer_shift_draft_to_verified: num("b5"),
+             reasoning: $("bnote").value.trim() || null};
+  if (!skip && [b.large_v3_fresh_critical_rate, b.large_v3_exhibition_minus_fresh, b.parakeet_exhibition_minus_fresh,
+                b.turbo_base_fresh_critical_rate, b.turbo_lora_e3_fresh_critical_rate].some(v => v === null)) {
+    $("betStatus").textContent = "Fill in bets 1 to 4, or skip."; return;
+  }
+  try { await api("/api/bet", b); } catch (e) { $("betStatus").textContent = e.message; return; }
+  boot();
+}
+$("betSave").onclick = () => recordBet(false);
+$("betSkip").onclick = () => recordBet(true);
+
+/* ---------- list ---------- */
+function renderList() {
+  const n = clips.filter(c => c.verified).length;
+  $("progress").textContent = `${n} of ${clips.length} verified · slowest first`;
+  $("barfill").style.width = (100 * n / clips.length) + "%";
+  const box = $("list"); box.innerHTML = "";
+  for (const c of clips) {
+    const b = document.createElement("button");
+    b.className = "clip" + (c.verified ? " done" : "") + (cur && cur.id === c.id ? " on" : "");
+    b.innerHTML = `<span class="dot">${c.verified ? "●" : "○"}</span><span class="t"></span><span class="r"></span>`;
+    b.querySelector(".t").textContent = c.track;
+    const a = document.createElement("span"); a.className = "a"; a.textContent = c.artist; b.querySelector(".t").appendChild(a);
+    b.querySelector(".r").textContent = c.rate.toFixed(1) + " syl/s";
+    b.onclick = () => open(c.id);
+    box.appendChild(b);
+  }
+}
+
+/* ---------- clip ---------- */
+async function open(id) {
+  if (cur && dirty) await save("autosave");
+  audio.pause();
+  let c;
+  try { c = await api("/api/clip?id=" + encodeURIComponent(id)); } catch (e) { status(e.message, true); return; }
+  cur = c; A = B = null; dirty = false; t0 = Date.now(); active = 0; lastTick = 0;
+  $("work").classList.remove("hidden"); $("done").classList.add("hidden");
+  $("title").textContent = c.track;
+  $("sub").textContent = `${c.artist} · draft rate ${c.rate.toFixed(2)} syl/s`;
+  $("lyrics").value = c.body; $("note").value = c.note; $("timing").checked = true;
+  audio.src = "/audio/" + encodeURIComponent(id) + ".wav"; audio.load();
+  setSpeed(speed); pill(); renderList(); drawAB(); status("");
+  fit(); $("lyrics").focus({preventScroll: true}); $("lyrics").setSelectionRange(0, 0); document.querySelector("main").scrollTop = 0;
+}
+function pill() {
+  $("pill").textContent = cur.verified ? "verified" : "draft";
+  $("pill").classList.toggle("ok", cur.verified);
+  $("unverify").classList.toggle("hidden", !cur.verified);
+  $("verify").textContent = cur.verified ? "Save and next" : "Mark verified and next";
+}
+async function save(action, verified) {
+  if (!cur) return false;
+  clearTimeout(saveTimer);
+  const v = verified === undefined ? cur.verified : verified;
+  try {
+    await api("/api/save", {id: cur.id, body: $("lyrics").value, note: $("note").value, verified: v, action,
+                            timing_ok: $("timing").checked, seconds: Math.round(active), speed});
+  } catch (e) { status("Not saved: " + e.message, true); return false; }
+  cur.verified = v; dirty = false;
+  const c = clips.find(x => x.id === cur.id); if (c) c.verified = v;
+  status("Saved " + new Date().toLocaleTimeString()); pill(); renderList();
+  return true;
+}
+function touch() { dirty = true; status("Editing…"); clearTimeout(saveTimer); saveTimer = setTimeout(() => save("autosave"), 1500); }
+function fit() {
+  const el = $("lyrics"), m = document.querySelector("main"), y = m.scrollTop;
+  el.style.height = "auto"; el.style.height = (el.scrollHeight + 4) + "px"; m.scrollTop = y;
+}
+$("lyrics").addEventListener("input", () => { touch(); fit(); });
+window.addEventListener("resize", fit);
+$("note").addEventListener("input", touch);
+
+async function verifyNext() {
+  if (!$("timing").checked && !$("note").value.trim()) { status("Add a note saying what's wrong with the clip edges.", true); $("note").focus(); return; }
+  if (!(await save("verify", true))) return;
+  const i = clips.findIndex(c => c.id === cur.id);
+  const next = [...clips.slice(i + 1), ...clips.slice(0, i)].find(c => !c.verified);
+  if (next) return open(next.id);
+  audio.pause(); $("work").classList.add("hidden"); $("done").classList.remove("hidden");
+}
+$("verify").onclick = verifyNext;
+$("unverify").onclick = () => save("unverify", false);
+$("reset").onclick = async () => {
+  if (!cur) return;
+  if ($("reset").dataset.arm !== cur.id) { $("reset").dataset.arm = cur.id; $("reset").textContent = "Click again to discard your edits"; return; }
+  $("reset").dataset.arm = ""; $("reset").textContent = "Restore the LRCLIB draft";
+  clearTimeout(saveTimer); dirty = false;
+  try { await api("/api/reset", {id: cur.id}); } catch (e) { status(e.message, true); return; }
+  const c = clips.find(x => x.id === cur.id); if (c) c.verified = false;
+  const id = cur.id; cur = null; open(id);
+};
+
+/* ---------- transport ---------- */
+function setSpeed(s) {
+  speed = s; audio.playbackRate = s; audio.preservesPitch = true;
+  [...$("speeds").children].forEach(b => b.classList.toggle("on", Number(b.dataset.s) === s));
+}
+SPEEDS.forEach(s => { const b = document.createElement("button"); b.textContent = s + "×"; b.dataset.s = s; b.onclick = () => setSpeed(s); $("speeds").appendChild(b); });
+const toggle = () => audio.paused ? audio.play().catch(() => {}) : audio.pause();
+const loopStart = () => A ?? 0;
+const loopEnd = () => B ?? (audio.duration || 0);
+const seek = t => { audio.currentTime = Math.min(Math.max(t, 0), (audio.duration || 0) - 0.05); };
+function drawAB() {
+  const d = audio.duration || 0, el = $("ab");
+  if (!d || (A === null && B === null)) { el.classList.add("hidden"); $("abtxt").textContent = "looping the whole clip"; return; }
+  el.classList.remove("hidden");
+  el.style.left = (100 * loopStart() / d) + "%"; el.style.width = (100 * (loopEnd() - loopStart()) / d) + "%";
+  $("abtxt").textContent = `looping ${fmt(loopStart())} to ${fmt(loopEnd())}`;
+}
+function setA() { A = audio.currentTime; if (B !== null && B <= A + 0.3) B = null; drawAB(); }
+function setB() { B = audio.currentTime; if (A !== null && B <= A + 0.3) A = Math.max(0, B - 4); if (A === null) A = Math.max(0, B - 4); drawAB(); seek(A); }
+function clearAB() { A = B = null; drawAB(); }
+$("play").onclick = toggle; $("setA").onclick = setA; $("setB").onclick = setB; $("clearAB").onclick = clearAB;
+let scrubbing = false;
+const scrubTo = e => { const r = $("track").getBoundingClientRect(); seek(Math.min(Math.max((e.clientX - r.left) / r.width, 0), 1) * (audio.duration || 0)); };
+$("track").addEventListener("pointerdown", e => { scrubbing = true; $("track").setPointerCapture(e.pointerId); scrubTo(e); e.preventDefault(); });
+$("track").addEventListener("pointermove", e => { if (scrubbing) scrubTo(e); });
+const scrubEnd = () => { scrubbing = false; $("lyrics").focus(); };
+$("track").addEventListener("pointerup", scrubEnd);
+$("track").addEventListener("pointercancel", scrubEnd);
+audio.onplay = () => $("play").textContent = "❚❚";
+audio.onpause = () => $("play").textContent = "▶";
+audio.onloadedmetadata = drawAB;
+audio.onended = () => { seek(loopStart()); audio.play().catch(() => {}); };
+function frame(now) {
+  const d = audio.duration || 0, t = audio.currentTime || 0;
+  if (!scrubbing && !audio.paused && d && t >= loopEnd() - 0.03 && loopEnd() < d - 0.03) seek(loopStart());
+  if (d) { $("fill").style.width = (100 * t / d) + "%"; $("head").style.left = (100 * t / d) + "%"; }
+  $("time").textContent = fmt(t) + " / " + fmt(d);
+  if (lastTick && !audio.paused && document.hasFocus()) active += (now - lastTick) / 1000;
+  lastTick = now;
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+document.addEventListener("keydown", e => {
+  if ($("app").classList.contains("hidden")) return;
+  const k = e.key.toLowerCase();
+  const hit = fn => { e.preventDefault(); fn(); };
+  if (e.key === "Escape") return hit(toggle);
+  if ((e.metaKey || e.ctrlKey) && e.key === "Enter") return hit(verifyNext);
+  if (e.metaKey && k === "s") return hit(() => save("save"));
+  if (!e.ctrlKey || e.metaKey || e.altKey) return;
+  if (k === "j") return hit(() => seek(audio.currentTime - 2));
+  if (k === "l") return hit(() => seek(audio.currentTime + 2));
+  if (k === "h") return hit(() => seek(loopStart()));
+  if (k === "k") return hit(toggle);
+  if (k === "i") return hit(setA);
+  if (k === "o") return hit(setB);
+  if (k === "p") return hit(clearAB);
+  if (k === ",") return hit(() => setSpeed(SPEEDS[Math.max(0, SPEEDS.indexOf(speed) - 1)]));
+  if (k === ".") return hit(() => setSpeed(SPEEDS[Math.min(SPEEDS.length - 1, SPEEDS.indexOf(speed) + 1)]));
+});
+window.addEventListener("beforeunload", () => { if (dirty) navigator.sendBeacon("/api/save", new Blob([JSON.stringify({id: cur.id, body: $("lyrics").value, note: $("note").value, verified: cur.verified, action: "unload", timing_ok: $("timing").checked, seconds: Math.round(active), speed})], {type: "application/json"})); });
+
+/* ---------- boot ---------- */
+async function boot() {
+  const s = await api("/api/state");
+  clips = s.clips;
+  $("bet").classList.toggle("hidden", s.bet); $("app").classList.toggle("hidden", !s.bet);
+  if (!s.bet) return;
+  renderList();
+  const first = clips.find(c => !c.verified);
+  if (first) open(first.id); else { $("work").classList.add("hidden"); $("done").classList.remove("hidden"); }
+}
+boot();
+</script>
+</body>
+</html>

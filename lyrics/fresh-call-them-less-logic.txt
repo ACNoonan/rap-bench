@@ -1,9 +1,7 @@
 # DRAFT from lrclib.net (id 38331121: Logic — Call Them Less, 288s), trimmed to 219.1-245.0s.
-# Read along with audio/fresh-call-them-less-logic.wav, fix what's actually rapped,
-# then delete the TODO-VERIFY line below.
-TODO-VERIFY
-They don't really know what we goin' through, my nigga, nah
-Ayy, yeah
+# Verified by ear 2026-11-18 (scripts/verify_app.py).
+# NOTE: You can hear just a little bit of the preceeding "yeah" before "They don't really know what I been through, ayy", so i wrappped in ()
+(yeah)
 They don't really know what I been through, ayy
 They don't really know what I went through, ayy
 Nowhere to go to escape on a trip to

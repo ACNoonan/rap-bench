@@ -35,11 +35,10 @@ populations:
 |---|---|---|---|
 | exhibition | famous commercial tracks (Eminem, Twista, Busta Rhymes) | 7 | scored |
 | core | Suno-generated verses no model has seen | 2 | scored |
-| fresh | real tracks first released after 2025-06-01, after every model in the roster | 21 | transcribed, lyrics awaiting verification |
+| fresh | real tracks first released after 2025-06-01, after every model in the roster | 20 | scored (verified by ear 2026-11-18; one clip excluded) |
 
 The fresh tier is the clean test: human vocals, real production, and
-contamination ruled out by release date. Scores for it are withheld until
-the lyrics are hand-verified.
+contamination ruled out by release date.
 
 ## Findings so far
 
@@ -56,7 +55,14 @@ the lyrics are hand-verified.
   - The Suno verses use rarer words (15.1% rare vs 6.5%). Adjusting for
     vocabulary takes the gap to +1.6 (−0.8 to +4.1).
 
-  Every model's interval includes zero. The fresh tier is built to settle it.
+  Every model's interval includes zero.
+- **The fresh tier shows no advantage for famous tracks.** whisper large-v3
+  scores 19.7% pooled WER on famous tracks and 19.0% on 20 unseen real
+  tracks. The Suno verses are the hard ones (31.8%, two clips).
+- **The original critical rate broke on the fresh tier.** It stops at the
+  first failing clip, and the slowest fresh clip fails for every model, so
+  all 17 configs scored `<4.4`. Tables now lead with pooled WER and a
+  critical rate read off an isotonic fit ([LOG.md](LOG.md), 2026-11-18).
 - **Fast and accurate rarely come together.** large-v3 is the most accurate
   model on famous tracks but runs slower than real time on the hardest ones.
   Parakeet runs 17–50× faster than real time and MLX whisper turbo 7–25×.
@@ -111,6 +117,7 @@ pair to `BACKENDS` in [scripts/transcribe.py](scripts/transcribe.py).
 | `bootstrap_ci.py` | line-level bootstrap intervals; `--rate mean`, `--adjust vocab` |
 | `draft_lyrics.py` | drafts reference lyrics from LRCLIB's synced lyrics |
 | `verify.sh` | tmux cockpit: clip on loop at 0.5× beside the lyric file |
+| `verify_app.py` | browser cockpit for the same job: slowed looping playback, A–B loop, lyric editor |
 | `scout.py` | finds post-cutoff fast tracks (MusicBrainz + LRCLIB) |
 | `select_fresh.py` | turns scouted tracks into fresh segments |
 | `synth.py` | builds a speed-swept synthetic tier from a rendered verse |

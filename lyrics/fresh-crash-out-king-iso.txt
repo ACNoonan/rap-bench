@@ -1,8 +1,7 @@
 # DRAFT from lrclib.net (id 38048821: King Iso — Crash Out, 211s), trimmed to 148.4-177.5s.
-# Read along with audio/fresh-crash-out-king-iso.wav, fix what's actually rapped,
-# then delete the TODO-VERIFY line below.
-TODO-VERIFY
-Lay a peon out like a napkin, vanish
+# Verified by ear 2026-11-18 (scripts/verify_app.py).
+# NOTE: starts in the middle of the work "vanish" so i wrapped it in curlies
+(vanish)
 Bitch I know what that is, I'm what's happenin', remember
 I'm not a superhero or a captain, avenger
 These ninjas play victim and poodle up, no doubt

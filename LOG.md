@@ -583,3 +583,246 @@ LRCLIB: the screen uses community stamps, so verified mean rates could move a
 segment from the 8–9 bin into the gap. If the gap survives verification, the
 interpolation between the 8.6 and 10.6 points carries the critical rate for
 any model that crosses there, and the bracket column will say so.
+
+## 2026-11-01 — v4 LoRA run: small val gain, repetition loops on hard clips
+
+First queued 2026-10-30; a Mac reboot on 10-31 killed the waiting driver before
+anything reached athena, and the death left no record. Resubmitted 11-01:
+run phase 199 min, 615 steps, seed 7, 3283 train chunks (21.5 h, 40 artists).
+results/finetune-turbo-lora-v1.md has the tables. Headline checkpoint is e3,
+fixed in DESIGN v4 before the run.
+
+| | base | e1 | e2 | e3 |
+|---|---|---|---|---|
+| clean WER (n=73) | 4.5 | 5.0 | 4.6 | 4.6 |
+| val WER (n=136) | 27.6 | 33.0 | 25.4 | 25.4 |
+| exhibition WER, pooled (n=7) | 32.6 | 32.0 | 32.9 | 41.1 |
+| core WER, pooled (n=2) | 32.1 | 56.4 | 138.1 | 137.6 |
+| val clips looping (n=136) | 3 | 8 | 6 | 5 |
+
+"Looping" is my post-hoc measure, not pre-registered: at least 30% of a
+transcript's 4-grams belong to a 4-gram repeated 4+ times. Train loss fell
+1.06 to 0.74 while val loss stayed at 0.82-0.83, so the adapter fit the
+training songs without generalizing much. Base val loss wasn't logged.
+
+The e3 exhibition and core numbers are mostly two loops: godzilla-v3 30 to 100%
+(370 words against 227 in the reference) and suno02 47 to 243% (351 against 118,
+ending in "yeah, yeah"). Slow clips got worse too: lose-yourself-v1 5 to 13%.
+speedom-em moved 23 to 20%, rap-god-fast 33 to 36%. worldwide-choppers-twista
+went 89 to 40%, but base was itself in a loop there, and e1/e2 stopped early
+(36 and 42 words in 35 s).
+
+D1 passes as registered (median |diff| 2 points) but hides two ±55 point clips:
+twista (HF 89, faster-whisper 35) and rap-god-fast (HF 33, faster-whisper 89).
+On the hardest clips the decoder path moves WER as much as anything else here,
+so single-clip changes above are weak evidence. finetune_lora.py runs HF
+generate with no temperature fallback or compression-ratio guard, so a loop
+is never retried. Coverage (early stops only) flagged twista on e1/e2 and
+missed both e3 loops; it needs a loop detector.
+
+Fresh tier: transcribed for all checkpoints, unscored until the lyrics are
+verified, so the critical-rate prediction is still open. One fresh clip loops at
+e3, none at base. eval_items.json listed the val chunks twice (fixed in
+finetune_lora.py); val WER deduped by name, so n=136 there was right.
+
+## 2026-11-04 — v4 guarded re-eval: the damage was loops, and the adapter adds nothing measurable
+
+rb-v4-guard-eval re-transcribed base and run 1's e1 to e3 adapters with
+temperature fallback, compression ratio 1.35 and log-prob −1.0
+(`scripts/eval_adapters.py`), about 12 min per checkpoint on athena. The job
+exited 0 on the box. The Mac-side driver lost athena at 22:50 and exited 1, so
+its runhub row reads `failed` while the box says rc=0. I pulled the outputs by
+hand. Tables are in results/finetune-turbo-lora-v1-guard.md. Intervals come
+from the new `scripts/paired_ci.py`.
+
+Predictions from DESIGN v4 "Secondary analysis", graded against e3 (guarded
+against guarded):
+
+| # | prediction | result | verdict |
+|---|---|---|---|
+| 1 | 0 of 9 scored clips loop; ≤2 of 136 val | 0 of 9; 2 of 136 | holds |
+| 2 | exhibition within 2 points of base | +1.96 (−1.4 to +5.4) | holds at the edge; consistent with no change |
+| 3 | val beats base by ≥1.5 | +0.7 worse (−1.3 to +3.4) | fails; consistent with no change |
+| 4 | clean moves <1 point | +0.1 (−0.6 to +0.7) | holds |
+| 5 | twista and rap-god-fast D1 gaps <20 | twista 8; rap-god-fast −57 | fails on rap-god-fast |
+
+Instrument pass for the guarded base: median |diff| 2 points, so the guarded
+comparisons stand.
+
+Reading:
+
+- **Run 1's e3 damage was loops.** Guarded, godzilla-v3 is at 37% (unguarded
+  100%) and suno02 at 54% (unguarded 243%). Neither loops, and their word counts
+  sit near the references (220 against 227, 128 against 118).
+- **With loops retried, the adapter neither helps nor hurts in a way n can
+  resolve.**
+  - Every exhibition, core and val interval includes zero.
+  - Point estimates lean slightly worse: exhibition +2.0, core +3.6, val +0.7.
+  - lose-yourself-v1 is the most consistent move, 5% to 13% at e3 guarded and
+    unguarded alike.
+- **Run 1's val "gain" came mostly from base looping.** Unguarded base was 27.6%,
+  guarded base is 24.1%.
+  - e1 is the best guarded checkpoint on val, −1.7 (−4.5 to +0.5).
+  - e3 is the pre-registered headline, so e1 is a learning-curve note, not a
+    result.
+- **Twista settled.**
+  - Its 89% base WER in run 1 was a decoder loop. Guarded base gets 43%, which
+    is 8 points from faster-whisper turbo.
+  - rap-god-fast's −57 is the opposite case: faster-whisper's own July
+    transcript is the outlier at 89%. Both HF configs give 33%.
+
+Fresh tier: transcribed under all eight configs and still unscored until the
+lyrics are verified. The loop check reads 0 of 21 fresh clips looping at every
+guarded checkpoint. The critical-rate prediction (~6.5 to ~8.0 syl/s) stays
+open, though nothing above suggests the adapter moves it.
+
+Why it didn't help, my inference: the training chunks are slow (median 4.15
+syl/s, p90 5.4) and the labels are unverified LRCLIB text. That's 21.5 h, mostly
+of moderate-speed rap the base already transcribes, so the adapter's best case
+was a small in-distribution gain. That's what e1 shows, and it decays by e3.
+
+## 2026-11-18 — fresh tier verified and scored: the critical rate collapses, pooled WER ranks cleanly
+
+Adam verified the fresh lyrics by ear on 2026-11-17 and 18 in
+`scripts/verify_app.py`. 20 of 21 clips are verified. `fresh-the-nice-one-tech-n9ne`
+is excluded: the audio in its window doesn't contain the LRCLIB lyrics at all,
+so its file stays a draft and the scorer skips it. Fresh is n = 20, 2,874
+reference words.
+
+Rules fixed before any fresh score was computed:
+
+- One marker. Anything that isn't the lead rapper's main line goes in
+  parentheses: the lead's ad-libs, sung hooks, choruses, background singers.
+  The scorer already treats parenthesised text as optional (best of with and
+  without, per clip). A separate curly-brace marker was tried for a day and
+  dropped; every brace was converted.
+- Clip windows were not moved. 12 of the 20 clips start or end mid-word
+  (`timing_verified: false` in segments.yaml, notes in
+  `lyrics/_verify/log.jsonl`). Adam cut or parenthesised the clipped words in
+  the reference instead, so the reference matches the audio and no clip needed
+  re-transcribing.
+- `syl_per_sec` for fresh clips was recomputed from the verified text. The
+  largest drops are gta-6 (8.20 to 7.46) and caught-you-in-the-bed (5.64 to
+  4.93), both from lines the draft included that fall outside the clip.
+- Adam skipped the bet.
+
+Result on the registered metric: every one of the 17 configs gets a fresh
+critical rate of `<4.4`. The slowest clip, jealous-type-doja-cat at 4.44
+syl/s, scores 25% or worse for every model (large-v3 exactly 25%), and the
+running-max envelope carries that failure to every faster rate. Claude's bets
+(large-v3 fresh 7.0; exhibition − fresh +1.0; parakeet about 0; turbo 6.5 to
+8.0 with the adapter) all miss.
+
+The metric is the finding. With 20 clips at 20 distinct rates there is no
+averaging within a rate, so a running max returns the first bad clip, and
+that clip is hard for a reason other than speed (a sung hook under the
+mix). Dropping that one clip moves large-v3 from `<4.4` to 6.4 and parakeet
+to 5.8. Rate explains little of the fresh WER: for large-v3 the correlation
+between rate and WER is 0.63, and 0.35 without titanic-gawne at 10.5 syl/s.
+
+Exploratory, not registered (scratch script, clip-level bootstrap, 20 clips):
+
+| config | pooled fresh WER | 95% CI | clips at 25%+ |
+|---|---|---|---|
+| faster-whisper large-v3 | 19.0% | 14.1–24.5 | 4 |
+| HF turbo base (guarded and unguarded) | 21.1% | 16.3–26.3 | 6 |
+| HF turbo guarded LoRA e1 | 21.3% | 16.7–25.8 | 6 |
+| MLX turbo | 22.5% | 17.9–27.5 | 6 |
+| HF turbo guarded LoRA e3 | 22.8% | 18.0–27.8 | 6 |
+| faster-whisper turbo | 25.8% | 17.9–36.7 | 7 |
+| parakeet-tdt-0.6b-v2 | 27.5% | 20.5–35.8 | 9 |
+| distil-large-v3 | 29.1% | 22.5–36.7 | 8 |
+| small | 30.5% | 22.3–40.5 | 10 |
+| moonshine-base | 43.1% | 32.4–54.6 | 14 |
+| tiny | 53.2% | 44.9–61.7 | 19 |
+| wav2vec2-large-960h | 76.5% | 70.6–82.1 | 20 |
+
+Paired differences on the same 20 clips, in WER points: parakeet − large-v3
++8.5 (4.7 to 12.9); turbo base − large-v3 +2.1 (0.6 to 3.6); guarded LoRA e3 −
+guarded base +1.7 (−0.2 to +3.9); guarded LoRA e1 − guarded base +0.2 (−1.7 to
++2.2). The adapter result matches exhibition: no gain. large-v3 is the best
+model here and runs slower than real time on all 20 clips (RTF 1.3 to 3.6).
+
+Reference noise. Scoring the LRCLIB draft as if it were a transcript against
+the verified text gives 8.8% WER pooled (0% on two clips, 20% on
+raw-thoughts-vii). Scoring the models against the drafts instead of the
+verified text raises every model's WER by 1.5 to 6.2 points (large-v3 25.2%
+against drafts, 19.0% verified) and leaves the ranking of all 17 configs
+identical (Kendall tau 1.0). The draft has 3,127 words against 2,874
+verified, so most of the gap is draft lines outside the clip window, which
+is what Adam reported by ear.
+
+Open: fix or drop the-nice-one's window; replace or supplement the running-max
+critical rate before the fresh tier is written up; `bootstrap_ci.py` has no
+exhibition − fresh delta row.
+
+## 2026-11-18 — metric change after the collapse: pooled WER as headline, isotonic fit for the critical rate
+
+Made after seeing the fresh scores, so everything here is post hoc. The
+registered running-max critical rate stays in every table beside the new
+numbers.
+
+- `score.py` now leads each row with pooled WER (errors over reference words
+  across a population's clips).
+- `critical_rate(..., method="isotonic")` fits the best non-decreasing curve
+  through the WER-vs-rate points by pool-adjacent-violators and reads the 25%
+  crossing off that. A clip that breaks the order is averaged with its
+  neighbours and no longer carried forward.
+- `bootstrap_ci.py` adds pooled WER with a two-stage interval (clips, then
+  lines within clips), a clip-level paired difference against the best model
+  for populations with at least 10 clips, and the isotonic rate with deltas
+  for all three population pairs.
+
+large-v3 on mean rates (results/ci-mean.md), isotonic fit: exhibition 8.2
+(6.4–10.3), fresh 8.7 (7.4–8.9), core 6.1 (5.6–6.8). Exhibition − fresh is
+−0.4 (−2.3 to +2.1), and −0.1 (−1.9 to +2.9) after vocabulary adjustment.
+Fresh − core is +2.6 (+1.2 to +3.1), +2.2 (+0.6 to +2.8) adjusted. The same
+sign holds for turbo and parakeet.
+
+Reading, my inference: famous tracks show no advantage over unseen real
+tracks, so the earlier exhibition − core gap was not memorization. The two
+Suno verses are harder than real rap at the same rate. Caveat: the
+critical-rate intervals resample lines inside fixed clips, so they do not
+cover which clips were chosen, and core is two clips.
+
+Pooled WER, large-v3: exhibition 19.7% (11.6–26.2, 6 clips), fresh 19.0%
+(13.8–24.7, 20 clips), core 31.8% (6.9–56.9, 2 clips).
+
+## 2026-11-18 — nine hosted models through OpenRouter
+
+Added an `openrouter:<model-id>` backend to `scripts/transcribe.py`
+(OpenRouter's `/audio/transcriptions` endpoint, base64 WAV, `language: en`,
+no other options). Ran nine hosted models over all 40 manifest segments.
+Reported cost $1.05 on Adam's personal OpenRouter key. RTF for these runs
+includes the network round trip.
+
+Pooled WER (results/ci-mean.md; two-stage bootstrap):
+
+| model | fresh, 20 clips | exhibition, 6 clips | empty transcripts, fresh |
+|---|---|---|---|
+| ElevenLabs Scribe v2 | 17.0% (11.6–22.3) | 12.3% (4.4–19.8) | 0 |
+| faster-whisper large-v3 (local, for reference) | 19.0% (13.8–24.7) | 19.7% (11.6–26.2) | 0 |
+| AssemblyAI Universal 3.6 Pro | 21.3% (15.0–28.5) | 26.9% | 0 |
+| OpenAI gpt-transcribe | 22.7% (16.4–29.9) | 18.9% | 0 |
+| xAI Grok STT 2.0 | 23.3% (16.8–30.1) | 30.7% | 0 |
+| Mistral Voxtral Small Transcribe 3.0 | 24.4% (15.1–35.9) | 30.7% | 0 |
+| OpenAI gpt-4o-transcribe | 37.1% (23.1–53.6) | 25.2% | 0, but 5 clips cut to 9–18 words |
+| Google Chirp 3 | 39.2% (24.9–54.7) | 42.8% | 3 |
+| Google Gemini 3.5 Transcribe | 53.9% (34.5–72.2) | 56.6% | 8 |
+| Deepgram Nova-3 | 72.0% (55.8–86.2) | 70.6% | 10 |
+
+Paired on the 20 fresh clips, large-v3 − Scribe v2 is +2.0 points (+0.4 to
++4.1). Scribe is the only model ahead of local large-v3.
+
+Empty transcripts are scored as 100% WER. They are returned with HTTP 200
+and billed; a repeat request for jealous-type-doja-cat gave the same empty
+text from both Deepgram and Gemini. Not checked: whether the providers'
+own APIs behave the same, or whether OpenRouter's default options (for
+example a music or speech detector) cause it. The Deepgram, Gemini, Chirp
+and gpt-4o-transcribe rows measure this route, and should not be quoted as
+the models' accuracy until that is checked.
+
+Fresh-tier contamination is not ruled out for hosted models: release dates
+are not yet recorded per model, and several postdate 2025-06-01. Scribe v2
+is 4.7 points better on exhibition than on fresh, the only top model with a
+gap in that direction, on 6 exhibition clips.

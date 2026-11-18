@@ -22,11 +22,16 @@ transcript word count over the base model's. Long-form decoding seeks on
 timestamp tokens; an adapter that broke seeking stops near 30 s and shows up
 here as a ratio well under 1 (flagged below 0.7), with no reference needed,
 so it can be read for fresh clips before their lyrics are verified.
+
+Loop check: coverage misses the opposite failure, a transcript that repeats
+itself (v4 run 1: godzilla-v3 and suno02 at e3). A clip loops when at least
+30% of its 4-word windows belong to a 4-gram that occurs 4+ times. Counted
+per eval group, with no reference needed, so fresh clips can be read too.
 """
 
-import statistics
-
+import collections
 import json
+import statistics
 import shutil
 import sys
 from pathlib import Path
@@ -40,6 +45,16 @@ from rapbench.normalize import normalize
 from score import load_reference
 
 REFERENCE_RUN = "faster-whisper-turbo__raw"
+LOOP_SHARE = 0.3
+
+
+def loop_share(text: str) -> float:
+    """Share of 4-word windows whose 4-gram occurs 4+ times in the transcript."""
+    w = normalize(text).split()
+    if len(w) < 8:
+        return 0.0
+    counts = collections.Counter(tuple(w[i:i + 4]) for i in range(len(w) - 3))
+    return sum(c for c in counts.values() if c >= 4) / (len(w) - 3)
 
 
 def wer(refs: list[str], hyps: list[str]) -> float:
@@ -98,6 +113,23 @@ def main() -> None:
             cov.append(f"| {d.name} | {len(ratios)} | {statistics.median(r for r, _ in ratios):.2f} | "
                        f"{min(r for r, _ in ratios):.2f} | {', '.join(low) or 'none'} |")
 
+    pops = {s["id"]: s.get("population") for s in load_segments()}
+    groups = collections.defaultdict(list)
+    for i in items:
+        n = i["name"]
+        groups["clean" if n.startswith("clean-") else "val" if n.startswith("val-") else pops.get(n, "?")].append(n)
+    groups = {g: sorted(set(ns)) for g, ns in groups.items()}
+    order = [g for g in ("exhibition", "core", "fresh", "clean", "val") if g in groups]
+    loops, looped = [], []
+    for d in tags:
+        cells = []
+        for g in order:
+            hit = [n for n in groups[g] if (d / f"{n}.txt").exists() and loop_share((d / f"{n}.txt").read_text()) >= LOOP_SHARE]
+            cells.append(str(len(hit)))
+            if g in ("exhibition", "core"):
+                looped += [f"{d.name}: {n}" for n in hit]
+        loops.append(f"| {d.name} | " + " | ".join(cells) + " |")
+
     epochs = [f"| {e['epoch']} | {e['steps']} | {e['train_loss']} | {e['val_loss']} | {e['secs'] / 60:.0f} min |"
               for e in metrics["epochs"]]
     out = [
@@ -119,6 +151,12 @@ def main() -> None:
         "Transcript words relative to the base model on the same clip. Under 0.7 suggests the adapter broke "
         "long-form seeking and the transcript stops early.", "",
         "| checkpoint | clips | median ratio | min | flagged < 0.7 |", "|---|---|---|---|---|", *cov, "",
+        "## Loops", "",
+        f"Clips where at least {LOOP_SHARE:.0%} of the 4-word windows repeat a 4-gram seen 4+ times. "
+        "Counts per eval group; no reference used.", "",
+        "| checkpoint | " + " | ".join(f"{g} (n={len(groups[g])})" for g in order) + " |",
+        "|---|" + "---|" * len(order), *loops, "",
+        "Scored clips that loop: " + ("; ".join(looped) or "none") + ".", "",
         "Benchmark scores: transcripts are copied to `outputs/`; run `score.py` and "
         "`bootstrap_ci.py --rate mean` (fresh segments score only once verified).", "",
     ]

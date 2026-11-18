@@ -1,8 +1,6 @@
 # DRAFT from lrclib.net (id 24561712: NF — GIVE ME A REASON, 182s), trimmed to 83.6-111.3s.
-# Read along with audio/fresh-give-me-a-reason-nf.wav, fix what's actually rapped,
-# then delete the TODO-VERIFY line below.
-TODO-VERIFY
-I forgot what that (I forgot what that) (Ayy)
+# Verified by ear 2026-11-18 (scripts/verify_app.py).
+(Ayy)
 I ain't forget about nothing, to keep it a hundred, I'm honestly bored
 I wanna feel like I felt when nobody was following me and I had no awards
 I wanna get back to hearing them call me a wannabe Shady who ain't got no voice (Who ain't got no voice)

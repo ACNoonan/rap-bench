@@ -1,8 +1,5 @@
 # DRAFT from lrclib.net (id 37317637: Chris Webby — Raw Thoughts VII, 421s), trimmed to 46.5-77.2s.
-# Read along with audio/fresh-raw-thoughts-vii-chris-webby.wav, fix what's actually rapped,
-# then delete the TODO-VERIFY line below.
-TODO-VERIFY
-On the human race track, we passed the last lap
+# Verified by ear 2026-11-18 (scripts/verify_app.py).
 With your pedo pedophiles and Illuminati puppets
 Operating in the shadows like roaches evading justice
 Subliminally teaching their wicked ways to the public
@@ -14,4 +11,3 @@ Then stole our sons and daughters and fed on the stolen innocence
 They groomed our behavior and turned us on our neighbors
 Took away our promise and offered us false saviors
 But something's gotta give when you're ruled by the takers
-And in the end, us and them will meet the same Maker

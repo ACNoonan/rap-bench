@@ -133,7 +133,10 @@ def eval_items(manifest_val, limit):
     return segs + clean + val
 
 
-def transcribe_all(model, processor, items, out_dir: Path, device) -> float:
+def transcribe_all(model, processor, items, out_dir: Path, device, guard: dict | None = None,
+                   seed: int = 0) -> float:
+    """guard: extra generate kwargs (eval_adapters.py's temperature fallback).
+    Fallback samples, so each clip reseeds from its name: reruns match."""
     from transformers import pipeline
 
     pipe = pipeline("automatic-speech-recognition", model=model, tokenizer=processor.tokenizer,
@@ -142,9 +145,11 @@ def transcribe_all(model, processor, items, out_dir: Path, device) -> float:
     t_all = time.perf_counter()
     for name, load, _ in items:
         x = load()
+        if guard:
+            torch.manual_seed(seed + int(hashlib.sha1(name.encode()).hexdigest()[:8], 16))
         t0 = time.perf_counter()
         text = pipe({"raw": x, "sampling_rate": SR}, return_timestamps=True,
-                    generate_kwargs={"language": "en", "task": "transcribe"})["text"].strip()
+                    generate_kwargs={"language": "en", "task": "transcribe", **(guard or {})})["text"].strip()
         elapsed = time.perf_counter() - t0
         (out_dir / f"{name}.txt").write_text(text + "\n")
         (out_dir / f"{name}.time").write_text(f"{elapsed:.3f}\n")
@@ -200,7 +205,7 @@ def main() -> None:
     val_audio = [(r, as_float(audio[r["audio"]][int(r["start"] * SR): int(r["end"] * SR)])) for r in val_rows]
     items = eval_items(val_audio, args.eval_limit)
     (out / "eval_items.json").write_text(json.dumps(
-        [{"name": n, "secs": s} for n, _, s in items] +
+        [{"name": n, "secs": s} for n, _, s in items if not n.startswith("val-")] +
         [{"name": f"val-{k:04d}", "song": r["song"], "start": r["start"], "end": r["end"], "text": r["text"]}
          for k, (r, _) in enumerate(val_audio)], indent=1))
 

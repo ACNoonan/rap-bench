@@ -1,8 +1,6 @@
 # DRAFT from lrclib.net (id 22896744: Tech N9ne — Black Walt Street (The New Breed), 274s), trimmed to 122.1-151.5s.
-# Read along with audio/fresh-black-walt-street-the-new-breed-tech-n9ne.wav, fix what's actually rapped,
-# then delete the TODO-VERIFY line below.
-TODO-VERIFY
-Black Walt Street
+# Verified by ear 2026-11-18 (scripts/verify_app.py).
+# NOTE: audio starts halfway through "shit" in "shit gets deep" bar
 Shit gets deep
 He said in his basement, he got equipment from music
 He made a commitment to use it

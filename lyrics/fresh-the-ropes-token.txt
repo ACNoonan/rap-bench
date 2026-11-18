@@ -1,9 +1,5 @@
 # DRAFT from lrclib.net (id 37756427: Token — The Ropes, 172s), trimmed to 27.7-59.2s.
-# Read along with audio/fresh-the-ropes-token.wav, fix what's actually rapped,
-# then delete the TODO-VERIFY line below.
-TODO-VERIFY
-Fuck what it is
-My temper shorter than buses I went into
+# Verified by ear 2026-11-18 (scripts/verify_app.py).
 Nothing is new except bunches of revenue
 Late to the party who gave me this edible?
 She put her hand on my back

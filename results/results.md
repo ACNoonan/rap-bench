@@ -2,38 +2,107 @@
 
 Cells are `WER · RTF` (batch); survival threshold 25%; 💀 = over threshold, 🐢 = accurate but slower than real time.
 
-**Critical rate** (primary metric): interpolated syl/sec where the WER-vs-rate curve crosses the threshold, on an isotonic envelope; `>x` = survived everything tested, `<x` = failed the slowest point. **Live** variant treats RTF ≥ 1 as total failure. Populations are scored separately — exhibition tracks are training-contaminated, core is synthetic/unseen (see DESIGN.md).
+**Pooled WER** (headline since 2026-11-18): errors over reference words across the population's segments. Intervals and paired model differences are in ci-mean.md.
+
+**Critical rate**: interpolated syl/sec where the WER-vs-rate curve crosses the threshold; `>x` = survived everything tested, `<x` = failed the slowest point. `isotonic fit` uses the best non-decreasing curve through the points. `running max` is the metric as registered in DESIGN.md v2: it stops at the first failing point, so one hard slow clip decides it (LOG.md, 2026-11-18). **Live** treats RTF ≥ 1 as total failure, on the running max. Populations are scored separately: exhibition tracks are training-contaminated, core is synthetic, fresh is real tracks released after the models (see DESIGN.md).
 
 ## exhibition
 
-| model | lose-yourself-v1 | the-way-i-am-v1 | speedom-em | rap-god-fast | worldwide-choppers-twista | godzilla-v3 | critical rate | live critical rate |
-|---|---|---|---|---|---|---|---|---|
-| faster-whisper-distil-large-v3__raw | 10% · 0.16× | 14% · 0.15× | 30% · 0.19× 💀 | 31% · 0.21× 💀 | 50% · 0.20× 💀 | 58% · 0.32× 💀 | 8.0 | 8.0 |
-| faster-whisper-large-v3__raw | 6% · 0.73× | 9% · 0.63× | 23% · 0.98× | 28% · 3.09× 💀 | 22% · 1.39× 🐢 | 26% · 1.53× 💀 | 9.2 | 9.0 |
-| faster-whisper-large-v3__vocals | 10% · 0.77× | 21% · 0.69× | 22% · 1.29× 🐢 | 22% · 1.09× 🐢 | 33% · 1.62× 💀 | 25% · 1.78× 🐢 | 9.7 | 5.9 |
-| faster-whisper-small__raw | 11% · 0.14× | 18% · 0.14× | 33% · 0.21× 💀 | 32% · 0.28× 💀 | 61% · 0.98× 💀 | 38% · 0.42× 💀 | 7.5 | 7.5 |
-| faster-whisper-tiny__raw | 21% · 0.03× | 57% · 0.18× 💀 | 44% · 0.04× 💀 | 100% · 0.27× 💀 | 78% · 0.05× 💀 | 98% · 0.20× 💀 | <5.5 | <5.5 |
-| faster-whisper-tiny__vocals | 24% · 0.03× | 57% · 0.20× 💀 | 44% · 0.04× 💀 | 64% · 0.06× 💀 | 74% · 0.25× 💀 | 59% · 0.06× 💀 | <5.5 | <5.5 |
-| faster-whisper-turbo__raw | 6% · 0.21× | 10% · 0.18× | 21% · 0.24× | 88% · 0.14× 💀 | 33% · 0.58× 💀 | 34% · 0.40× 💀 | 9.0 | 9.0 |
-| hf-UsefulSensors-moonshine-base__raw | 30% · 0.25× 💀 | 29% · 0.10× 💀 | 75% · 0.09× 💀 | 28% · 0.12× 💀 | 68% · 0.10× 💀 | 72% · 0.10× 💀 | <5.5 | <5.5 |
-| hf-facebook-wav2vec2-large-960h-lv60-self__raw | 59% · 0.06× 💀 | 91% · 0.04× 💀 | 78% · 0.03× 💀 | 81% · 0.03× 💀 | 86% · 0.04× 💀 | 88% · 0.03× 💀 | <5.5 | <5.5 |
-| mlx-whisper-mlx-community-whisper-large-v3-turbo__raw | 7% · 0.04× | 8% · 0.04× | 22% · 0.05× | 39% · 0.05× 💀 | 34% · 0.14× 💀 | 51% · 0.05× 💀 | 9.1 | 9.1 |
-| parakeet-mlx-community-parakeet-tdt-0.6b-v2__raw | 11% · 0.06× | 16% · 0.02× | 33% · 0.02× 💀 | 26% · 0.03× 💀 | 52% · 0.02× 💀 | 40% · 0.03× 💀 | 7.6 | 7.6 |
+| model | pooled WER | critical rate (isotonic fit) | running max (registered) | live | lose-yourself-v1 | the-way-i-am-v1 | speedom-em | rap-god-fast | worldwide-choppers-twista | godzilla-v3 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| faster-whisper-distil-large-v3__raw | 34.7% | 8.0 | 8.0 | 8.0 | 10% · 0.16× | 14% · 0.15× | 30% · 0.19× 💀 | 31% · 0.21× 💀 | 50% · 0.20× 💀 | 58% · 0.32× 💀 |
+| faster-whisper-large-v3__raw | 19.7% | 10.1 | 9.2 | 9.0 | 6% · 0.73× | 9% · 0.63× | 23% · 0.98× | 28% · 3.09× 💀 | 22% · 1.39× 🐢 | 26% · 1.53× 💀 |
+| faster-whisper-large-v3__vocals | 22.8% | 9.8 | 9.7 | 5.9 | 10% · 0.77× | 21% · 0.69× | 22% · 1.29× 🐢 | 22% · 1.09× 🐢 | 33% · 1.62× 💀 | 25% · 1.78× 🐢 |
+| faster-whisper-small__raw | 34.1% | 7.5 | 7.5 | 7.5 | 11% · 0.14× | 18% · 0.14× | 33% · 0.21× 💀 | 32% · 0.28× 💀 | 61% · 0.98× 💀 | 38% · 0.42× 💀 |
+| faster-whisper-tiny__raw | 66.5% | <5.5 | <5.5 | <5.5 | 21% · 0.03× | 57% · 0.18× 💀 | 44% · 0.04× 💀 | 100% · 0.27× 💀 | 78% · 0.05× 💀 | 98% · 0.20× 💀 |
+| faster-whisper-tiny__vocals | 53.7% | <5.5 | <5.5 | <5.5 | 24% · 0.03× | 57% · 0.20× 💀 | 44% · 0.04× 💀 | 64% · 0.06× 💀 | 74% · 0.25× 💀 | 59% · 0.06× 💀 |
+| faster-whisper-turbo__raw | 29.4% | 9.1 | 9.0 | 9.0 | 6% · 0.21× | 10% · 0.18× | 21% · 0.24× | 88% · 0.14× 💀 | 33% · 0.58× 💀 | 34% · 0.40× 💀 |
+| hf-UsefulSensors-moonshine-base__raw | 55.7% | <5.5 | <5.5 | <5.5 | 30% · 0.25× 💀 | 29% · 0.10× 💀 | 75% · 0.09× 💀 | 28% · 0.12× 💀 | 68% · 0.10× 💀 | 72% · 0.10× 💀 |
+| hf-facebook-wav2vec2-large-960h-lv60-self__raw | 80.9% | <5.5 | <5.5 | <5.5 | 59% · 0.06× 💀 | 91% · 0.04× 💀 | 78% · 0.03× 💀 | 81% · 0.03× 💀 | 86% · 0.04× 💀 | 88% · 0.03× 💀 |
+| hf-whisper-large-v3-turbo-base__raw | 32.4% | 9.1 | 9.1 | 9.1 | 5% · 0.19× | 10% · 0.11× | 23% · 0.14× | 32% · 0.15× 💀 | 86% · 0.40× 💀 | 30% · 0.21× 💀 |
+| hf-whisper-large-v3-turbo-guard-base__raw | 24.2% | 9.1 | 9.1 | 9.1 | 5% · 0.14× | 10% · 0.16× | 23% · 0.14× | 32% · 0.21× 💀 | 40% · 0.45× 💀 | 30% · 0.21× 💀 |
+| hf-whisper-large-v3-turbo-guard-lora-e1__raw | 25.5% | 9.2 | 9.2 | 9.2 | 7% · 0.24× | 12% · 0.12× | 23% · 0.15× | 31% · 0.19× 💀 | 45% · 0.46× 💀 | 30% · 0.21× 💀 |
+| hf-whisper-large-v3-turbo-guard-lora-e2__raw | 26.7% | 9.1 | 9.1 | 9.1 | 10% · 0.12× | 14% · 0.12× | 21% · 0.15× | 37% · 0.19× 💀 | 46% · 0.49× 💀 | 30% · 0.22× 💀 |
+| hf-whisper-large-v3-turbo-guard-lora-e3__raw | 26.2% | 9.2 | 9.2 | 9.2 | 13% · 0.12× | 13% · 0.14× | 20% · 0.15× | 35% · 0.19× 💀 | 36% · 0.19× 💀 | 37% · 0.35× 💀 |
+| hf-whisper-large-v3-turbo-lora-e1__raw | 32.0% | 9.2 | 9.2 | 9.2 | 7% · 0.23× | 12% · 0.12× | 23% · 0.15× | 31% · 0.19× 💀 | 84% · 0.60× 💀 | 30% · 0.21× 💀 |
+| hf-whisper-large-v3-turbo-lora-e2__raw | 32.9% | 9.1 | 9.1 | 9.1 | 10% · 0.12× | 14% · 0.11× | 21% · 0.15× | 37% · 0.19× 💀 | 82% · 0.40× 💀 | 30% · 0.22× 💀 |
+| hf-whisper-large-v3-turbo-lora-e3__raw | 40.3% | 9.2 | 9.2 | 9.2 | 13% · 0.12× | 13% · 0.11× | 20% · 0.15× | 35% · 0.19× 💀 | 36% · 0.19× 💀 | 100% · 0.31× 💀 |
+| mlx-whisper-mlx-community-whisper-large-v3-turbo__raw | 28.4% | 9.1 | 9.1 | 9.1 | 7% · 0.04× | 8% · 0.04× | 22% · 0.05× | 39% · 0.05× 💀 | 34% · 0.14× 💀 | 51% · 0.05× 💀 |
+| openrouter-assemblyai-universal-3-6-pro__raw | 26.9% | 8.6 | 8.6 | 8.6 | 7% · 0.05× | 9% · 0.05× | 27% · 0.06× 💀 | 39% · 0.12× 💀 | 43% · 0.07× 💀 | 31% · 0.09× 💀 |
+| openrouter-deepgram-nova-3__raw | 70.6% | 5.9 | 5.9 | 5.9 | 9% · 0.05× | 25% · 0.04× 💀 | 78% · 0.04× 💀 | 90% · 0.10× 💀 | 100% · 0.05× 💀 | 98% · 0.02× 💀 |
+| openrouter-elevenlabs-scribe-v2__raw | 12.3% | >10.6 | >10.6 | 6.3 | 1% · 0.10× | 2% · 0.10× | 24% · 1.60× 🐢 | 10% · 0.23× | 21% · 0.29× | 9% · 0.24× |
+| openrouter-google-chirp-3__raw | 42.8% | 8.0 | 8.0 | 8.0 | 4% · 0.35× | 12% · 0.34× | 31% · 0.35× 💀 | 41% · 0.46× 💀 | 41% · 0.35× 💀 | 99% · 0.31× 💀 |
+| openrouter-google-gemini-3.5-transcribe__raw | 56.6% | 8.6 | 8.6 | 8.6 | 5% · 0.10× | 8% · 0.10× | 27% · 0.09× 💀 | 91% · 0.16× 💀 | 100% · 0.09× 💀 | 98% · 0.10× 💀 |
+| openrouter-mistralai-voxtral-small-transcribe-3-0__raw | 30.7% | 8.7 | 8.7 | 8.7 | 8% · 0.07× | 11% · 0.06× | 26% · 0.07× 💀 | 88% · 0.09× 💀 | 36% · 0.09× 💀 | 30% · 0.10× 💀 |
+| openrouter-openai-gpt-4o-transcribe__raw | 25.2% | 8.7 | 8.7 | 8.7 | 3% · 0.07× | 3% · 0.09× | 27% · 0.12× 💀 | 94% · 0.12× 💀 | 25% · 0.12× 💀 | 19% · 0.14× |
+| openrouter-openai-gpt-transcribe__raw | 18.9% | >10.6 | 8.2 | 8.2 | 3% · 0.07× | 7% · 0.06× | 31% · 0.07× 💀 | 14% · 0.09× | 34% · 0.08× 💀 | 15% · 0.12× |
+| openrouter-x-ai-grok-stt-2.0__raw | 30.7% | 8.4 | 8.4 | 8.4 | 13% · 0.09× | 11% · 0.10× | 28% · 0.11× 💀 | 89% · 0.11× 💀 | 23% · 0.14× | 36% · 0.12× 💀 |
+| parakeet-mlx-community-parakeet-tdt-0.6b-v2__raw | 31.7% | 8.0 | 7.6 | 7.6 | 11% · 0.06× | 16% · 0.02× | 33% · 0.02× 💀 | 26% · 0.03× 💀 | 52% · 0.02× 💀 | 40% · 0.03× 💀 |
 
 Segments easy → hard: lose-yourself-v1 (5.5 syl/s), the-way-i-am-v1 (5.5 syl/s), speedom-em (9.0 syl/s), rap-god-fast (9.6 syl/s), worldwide-choppers-twista (10.0 syl/s), godzilla-v3 (10.6 syl/s)
 
 ## core
 
-| model | suno01 | suno02 | critical rate | live critical rate |
-|---|---|---|---|---|
-| faster-whisper-distil-large-v3__raw | 17% · 0.21× | 60% · 0.24× 💀 | 5.6 | 5.6 |
-| faster-whisper-large-v3__raw | 10% · 0.87× | 51% · 1.39× 💀 | 6.2 | 5.5 |
-| faster-whisper-small__raw | 25% · 0.18× | 64% · 0.24× 💀 | 4.9 | 4.9 |
-| faster-whisper-tiny__raw | 47% · 0.03× 💀 | 66% · 0.20× 💀 | <4.9 | <4.9 |
-| faster-whisper-turbo__raw | 15% · 0.24× | 44% · 0.29× 💀 | 6.1 | 6.1 |
-| hf-UsefulSensors-moonshine-base__raw | 42% · 0.12× 💀 | 64% · 0.16× 💀 | <4.9 | <4.9 |
-| hf-facebook-wav2vec2-large-960h-lv60-self__raw | 95% · 0.04× 💀 | 91% · 0.03× 💀 | <4.9 | <4.9 |
-| mlx-whisper-mlx-community-whisper-large-v3-turbo__raw | 15% · 0.04× | 42% · 0.05× 💀 | 6.2 | 6.2 |
-| parakeet-mlx-community-parakeet-tdt-0.6b-v2__raw | 12% · 0.02× | 55% · 0.03× 💀 | 6.0 | 6.0 |
+| model | pooled WER | critical rate (isotonic fit) | running max (registered) | live | suno01 | suno02 |
+|---|---|---|---|---|---|---|
+| faster-whisper-distil-large-v3__raw | 40.0% | 5.6 | 5.6 | 5.6 | 17% · 0.21× | 60% · 0.24× 💀 |
+| faster-whisper-large-v3__raw | 31.8% | 6.2 | 6.2 | 5.5 | 10% · 0.87× | 51% · 1.39× 💀 |
+| faster-whisper-small__raw | 45.5% | 4.9 | 4.9 | 4.9 | 25% · 0.18× | 64% · 0.24× 💀 |
+| faster-whisper-tiny__raw | 57.3% | <4.9 | <4.9 | <4.9 | 47% · 0.03× 💀 | 66% · 0.20× 💀 |
+| faster-whisper-turbo__raw | 30.5% | 6.1 | 6.1 | 6.1 | 15% · 0.24× | 44% · 0.29× 💀 |
+| hf-UsefulSensors-moonshine-base__raw | 54.1% | <4.9 | <4.9 | <4.9 | 42% · 0.12× 💀 | 64% · 0.16× 💀 |
+| hf-facebook-wav2vec2-large-960h-lv60-self__raw | 92.7% | <4.9 | <4.9 | <4.9 | 95% · 0.04× 💀 | 91% · 0.03× 💀 |
+| hf-whisper-large-v3-turbo-base__raw | 30.9% | 6.2 | 6.2 | 6.2 | 12% · 0.11× | 47% · 0.17× 💀 |
+| hf-whisper-large-v3-turbo-guard-base__raw | 30.9% | 6.2 | 6.2 | 6.2 | 12% · 0.11× | 47% · 0.18× 💀 |
+| hf-whisper-large-v3-turbo-guard-lora-e1__raw | 32.7% | 5.9 | 5.9 | 5.9 | 16% · 0.11× | 47% · 0.26× 💀 |
+| hf-whisper-large-v3-turbo-guard-lora-e2__raw | 35.5% | 5.9 | 5.9 | 5.9 | 14% · 0.11× | 54% · 0.40× 💀 |
+| hf-whisper-large-v3-turbo-guard-lora-e3__raw | 34.5% | 6.0 | 6.0 | 6.0 | 12% · 0.12× | 54% · 0.40× 💀 |
+| hf-whisper-large-v3-turbo-lora-e1__raw | 55.5% | 5.3 | 5.3 | 5.3 | 16% · 0.11× | 90% · 0.21× 💀 |
+| hf-whisper-large-v3-turbo-lora-e2__raw | 136.4% | 5.1 | 5.1 | 5.1 | 14% · 0.11× | 242% · 0.58× 💀 |
+| hf-whisper-large-v3-turbo-lora-e3__raw | 135.9% | 5.1 | 5.1 | 5.1 | 12% · 0.12× | 243% · 0.57× 💀 |
+| mlx-whisper-mlx-community-whisper-large-v3-turbo__raw | 29.1% | 6.2 | 6.2 | 6.2 | 15% · 0.04× | 42% · 0.05× 💀 |
+| openrouter-assemblyai-universal-3-6-pro__raw | 30.5% | 6.1 | 6.1 | 6.1 | 15% · 0.05× | 44% · 0.07× 💀 |
+| openrouter-deepgram-nova-3__raw | 77.5% | <4.9 | <4.9 | <4.9 | 72% · 0.04× 💀 | 82% · 0.07× 💀 |
+| openrouter-elevenlabs-scribe-v2__raw | 24.1% | 6.9 | 6.9 | 6.9 | 11% · 0.07× | 36% · 0.20× 💀 |
+| openrouter-google-chirp-3__raw | 55.5% | <4.9 | <4.9 | <4.9 | 25% · 0.32× 💀 | 81% · 1.00× 💀 |
+| openrouter-google-gemini-3.5-transcribe__raw | 91.7% | <4.9 | <4.9 | <4.9 | 100% · 0.08× 💀 | 85% · 0.11× 💀 |
+| openrouter-mistralai-voxtral-small-transcribe-3-0__raw | 38.2% | 5.7 | 5.7 | 5.7 | 16% · 0.09× | 58% · 0.09× 💀 |
+| openrouter-openai-gpt-4o-transcribe__raw | 30.5% | 6.3 | 6.3 | 6.3 | 11% · 0.07× | 47% · 0.10× 💀 |
+| openrouter-openai-gpt-transcribe__raw | 34.1% | 5.8 | 5.8 | 5.8 | 17% · 0.05× | 49% · 0.08× 💀 |
+| openrouter-x-ai-grok-stt-2.0__raw | 35.0% | 5.8 | 5.8 | 5.8 | 16% · 0.05× | 52% · 0.07× 💀 |
+| parakeet-mlx-community-parakeet-tdt-0.6b-v2__raw | 35.3% | 6.0 | 6.0 | 6.0 | 12% · 0.02× | 55% · 0.03× 💀 |
 
 Segments easy → hard: suno01 (4.9 syl/s), suno02 (8.4 syl/s)
+
+## fresh
+
+| model | pooled WER | critical rate (isotonic fit) | running max (registered) | live | fresh-jealous-type-doja-cat | fresh-nightmares-gawne | fresh-caught-you-in-the-bed-dax | fresh-crash-out-king-iso | fresh-raw-thoughts-vii-chris-webby | fresh-richards-tale-set-the-scene-ren | fresh-bad-news-merkules | fresh-sk8-jid | fresh-give-me-a-reason-nf | fresh-behold-jid | fresh-black-walt-street-the-new-breed-tech-n9ne | fresh-call-them-less-logic | fresh-monsters-joyner-lucas | fresh-kumquat-token | fresh-the-ropes-token | fresh-gta-6-joyner-lucas | fresh-one-of-them-joyner-lucas | fresh-never-me-token | fresh-animals-pt-i-jid | fresh-titanic-gawne |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| faster-whisper-distil-large-v3__raw | 29.1% | 6.9 | <4.4 | <4.4 | 32% · 0.26× 💀 | 21% · 0.40× | 9% · 0.25× | 16% · 0.28× | 4% · 0.33× | 21% · 0.26× | 22% · 0.27× | 42% · 0.27× 💀 | 17% · 0.28× | 37% · 0.40× 💀 | 25% · 0.27× | 15% · 0.27× | 16% · 0.31× | 23% · 0.27× | 45% · 0.39× 💀 | 34% · 0.31× 💀 | 43% · 0.29× 💀 | 21% · 0.32× | 37% · 0.48× 💀 | 68% · 0.39× 💀 |
+| faster-whisper-large-v3__raw | 19.0% | 8.7 | <4.4 | <4.4 | 25% · 1.28× 💀 | 14% · 1.97× 🐢 | 2% · 1.60× 🐢 | 8% · 1.91× 🐢 | 3% · 1.65× 🐢 | 15% · 2.00× 🐢 | 19% · 1.94× 🐢 | 18% · 2.25× 🐢 | 7% · 1.47× 🐢 | 32% · 2.56× 💀 | 22% · 2.06× 🐢 | 10% · 1.96× 🐢 | 13% · 1.98× 🐢 | 11% · 2.99× 🐢 | 23% · 3.61× 🐢 | 23% · 3.11× 🐢 | 28% · 2.49× 💀 | 13% · 2.09× 🐢 | 21% · 3.52× 🐢 | 49% · 2.81× 💀 |
+| faster-whisper-small__raw | 30.5% | 5.7 | <4.4 | <4.4 | 28% · 0.27× 💀 | 24% · 0.33× | 5% · 0.31× | 17% · 0.38× | 4% · 0.27× | 112% · 0.66× 💀 | 26% · 0.36× 💀 | 40% · 0.36× 💀 | 11% · 0.31× | 43% · 0.42× 💀 | 20% · 0.38× | 18% · 0.36× | 24% · 0.37× | 20% · 0.38× | 37% · 0.49× 💀 | 30% · 0.50× 💀 | 32% · 0.49× 💀 | 14% · 0.42× | 36% · 0.99× 💀 | 61% · 1.01× 💀 |
+| faster-whisper-tiny__raw | 53.2% | <4.4 | <4.4 | <4.4 | 51% · 0.04× 💀 | 45% · 0.06× 💀 | 20% · 0.06× | 34% · 0.06× 💀 | 34% · 0.04× 💀 | 62% · 0.07× 💀 | 39% · 0.05× 💀 | 64% · 0.06× 💀 | 39% · 0.06× 💀 | 78% · 0.08× 💀 | 46% · 0.06× 💀 | 34% · 0.06× 💀 | 38% · 0.06× 💀 | 46% · 0.07× 💀 | 71% · 0.17× 💀 | 66% · 0.09× 💀 | 65% · 0.09× 💀 | 41% · 0.08× 💀 | 60% · 0.30× 💀 | 92% · 0.46× 💀 |
+| faster-whisper-turbo__raw | 25.8% | 8.5 | <4.4 | <4.4 | 32% · 0.27× 💀 | 9% · 0.33× | 104% · 2.08× 💀 | 10% · 0.35× | 4% · 0.40× | 23% · 0.73× | 25% · 0.35× 💀 | 20% · 0.38× | 14% · 0.31× | 25% · 0.45× 💀 | 20% · 0.36× | 10% · 0.38× | 16% · 0.37× | 16% · 0.35× | 27% · 0.47× 💀 | 19% · 0.58× | 30% · 0.60× 💀 | 15% · 0.38× | 21% · 0.61× | 60% · 0.91× 💀 |
+| hf-UsefulSensors-moonshine-base__raw | 43.1% | <4.4 | <4.4 | <4.4 | 114% · 0.12× 💀 | 35% · 0.09× 💀 | 10% · 0.11× | 21% · 0.12× | 7% · 0.10× | 40% · 0.11× 💀 | 26% · 0.13× 💀 | 53% · 0.10× 💀 | 16% · 0.14× | 92% · 0.10× 💀 | 37% · 0.11× 💀 | 20% · 0.13× | 22% · 0.11× | 34% · 0.11× 💀 | 68% · 0.10× 💀 | 35% · 0.12× 💀 | 40% · 0.11× 💀 | 37% · 0.11× 💀 | 53% · 0.11× 💀 | 72% · 0.29× 💀 |
+| hf-facebook-wav2vec2-large-960h-lv60-self__raw | 76.5% | <4.4 | <4.4 | <4.4 | 96% · 0.02× 💀 | 72% · 0.02× 💀 | 48% · 0.02× 💀 | 68% · 0.02× 💀 | 65% · 0.02× 💀 | 60% · 0.02× 💀 | 65% · 0.02× 💀 | 75% · 0.02× 💀 | 57% · 0.02× 💀 | 88% · 0.02× 💀 | 70% · 0.02× 💀 | 71% · 0.02× 💀 | 77% · 0.02× 💀 | 72% · 0.02× 💀 | 94% · 0.02× 💀 | 84% · 0.02× 💀 | 89% · 0.02× 💀 | 76% · 0.02× 💀 | 82% · 0.02× 💀 | 98% · 0.05× 💀 |
+| hf-whisper-large-v3-turbo-base__raw | 21.1% | 8.3 | <4.4 | <4.4 | 32% · 0.10× 💀 | 9% · 0.12× | 5% · 0.12× | 9% · 0.12× | 4% · 0.14× | 15% · 0.12× | 24% · 0.13× | 19% · 0.13× | 12% · 0.12× | 32% · 0.16× 💀 | 20% · 0.13× | 11% · 0.14× | 18% · 0.14× | 16% · 0.13× | 28% · 0.17× 💀 | 20% · 0.15× | 27% · 0.16× 💀 | 14% · 0.14× | 30% · 0.15× 💀 | 49% · 0.19× 💀 |
+| hf-whisper-large-v3-turbo-guard-base__raw | 21.1% | 8.3 | <4.4 | <4.4 | 32% · 0.10× 💀 | 9% · 0.12× | 5% · 0.12× | 9% · 0.12× | 4% · 0.14× | 15% · 0.12× | 24% · 0.14× | 19% · 0.13× | 12% · 0.12× | 32% · 0.16× 💀 | 20% · 0.13× | 11% · 0.14× | 18% · 0.13× | 16% · 0.13× | 28% · 0.17× 💀 | 20% · 0.15× | 27% · 0.20× 💀 | 14% · 0.14× | 30% · 0.19× 💀 | 49% · 0.19× 💀 |
+| hf-whisper-large-v3-turbo-guard-lora-e1__raw | 21.3% | 8.5 | <4.4 | <4.4 | 33% · 0.11× 💀 | 17% · 0.11× | 6% · 0.11× | 12% · 0.12× | 3% · 0.14× | 26% · 0.12× 💀 | 23% · 0.13× | 25% · 0.14× | 9% · 0.12× | 35% · 0.34× 💀 | 15% · 0.14× | 12% · 0.14× | 13% · 0.14× | 19% · 0.14× | 32% · 0.19× 💀 | 22% · 0.15× | 26% · 0.16× 💀 | 14% · 0.14× | 24% · 0.17× | 42% · 0.19× 💀 |
+| hf-whisper-large-v3-turbo-guard-lora-e2__raw | 21.9% | 8.2 | <4.4 | <4.4 | 40% · 0.12× 💀 | 18% · 0.11× | 2% · 0.11× | 8% · 0.12× | 5% · 0.14× | 22% · 0.13× | 27% · 0.13× 💀 | 22% · 0.14× | 13% · 0.12× | 32% · 0.16× 💀 | 16% · 0.14× | 12% · 0.15× | 11% · 0.14× | 19% · 0.14× | 34% · 0.18× 💀 | 22% · 0.15× | 27% · 0.16× 💀 | 16% · 0.14× | 27% · 0.18× 💀 | 45% · 0.18× 💀 |
+| hf-whisper-large-v3-turbo-guard-lora-e3__raw | 22.8% | 7.4 | <4.4 | <4.4 | 36% · 0.11× 💀 | 19% · 0.11× | 9% · 0.14× | 13% · 0.12× | 3% · 0.14× | 23% · 0.12× | 29% · 0.13× 💀 | 24% · 0.14× | 14% · 0.13× | 34% · 0.28× 💀 | 18% · 0.14× | 15% · 0.14× | 11% · 0.14× | 17% · 0.14× | 39% · 0.18× 💀 | 21% · 0.15× | 25% · 0.16× | 15% · 0.14× | 27% · 0.17× 💀 | 46% · 0.18× 💀 |
+| hf-whisper-large-v3-turbo-lora-e1__raw | 32.0% | 6.3 | <4.4 | <4.4 | 33% · 0.11× 💀 | 17% · 0.11× | 6% · 0.11× | 12% · 0.12× | 3% · 0.14× | 26% · 0.12× 💀 | 23% · 0.13× | 25% · 0.14× | 9% · 0.12× | 203% · 0.49× 💀 | 15% · 0.14× | 12% · 0.13× | 13% · 0.14× | 19% · 0.14× | 32% · 0.19× 💀 | 22% · 0.15× | 26% · 0.16× 💀 | 14% · 0.14× | 24% · 0.17× | 42% · 0.18× 💀 |
+| hf-whisper-large-v3-turbo-lora-e2__raw | 21.9% | 8.2 | <4.4 | <4.4 | 40% · 0.12× 💀 | 18% · 0.11× | 2% · 0.11× | 8% · 0.12× | 5% · 0.14× | 22% · 0.13× | 27% · 0.13× 💀 | 22% · 0.14× | 13% · 0.12× | 32% · 0.16× 💀 | 16% · 0.14× | 12% · 0.14× | 11% · 0.14× | 19% · 0.14× | 34% · 0.18× 💀 | 22% · 0.15× | 27% · 0.16× 💀 | 16% · 0.14× | 27% · 0.17× 💀 | 45% · 0.18× 💀 |
+| hf-whisper-large-v3-turbo-lora-e3__raw | 26.9% | 6.3 | <4.4 | <4.4 | 36% · 0.11× 💀 | 19% · 0.11× | 9% · 0.11× | 13% · 0.12× | 3% · 0.14× | 23% · 0.12× | 29% · 0.13× 💀 | 24% · 0.14× | 14% · 0.12× | 98% · 0.22× 💀 | 18% · 0.14× | 15% · 0.14× | 11% · 0.14× | 17% · 0.14× | 39% · 0.18× 💀 | 21% · 0.15× | 25% · 0.16× | 15% · 0.14× | 27% · 0.17× 💀 | 46% · 0.18× 💀 |
+| mlx-whisper-mlx-community-whisper-large-v3-turbo__raw | 22.5% | 8.5 | <4.4 | <4.4 | 36% · 0.04× 💀 | 11% · 0.04× | 16% · 0.05× | 12% · 0.04× | 4% · 0.05× | 26% · 0.04× 💀 | 23% · 0.04× | 19% · 0.04× | 13% · 0.04× | 33% · 0.05× 💀 | 20% · 0.04× | 18% · 0.04× | 17% · 0.05× | 16% · 0.04× | 27% · 0.06× 💀 | 24% · 0.05× | 30% · 0.07× 💀 | 15% · 0.05× | 21% · 0.07× | 52% · 0.07× 💀 |
+| openrouter-assemblyai-universal-3-6-pro__raw | 21.3% | 8.2 | 6.3 | 6.3 | 21% · 0.07× | 7% · 0.08× | 6% · 0.06× | 10% · 0.05× | 2% · 0.03× | 21% · 0.08× | 17% · 0.06× | 30% · 0.07× 💀 | 3% · 0.05× | 36% · 0.05× 💀 | 21% · 0.07× | 8% · 0.07× | 13% · 0.04× | 14% · 0.06× | 28% · 0.08× 💀 | 24% · 0.06× | 30% · 0.08× 💀 | 18% · 0.04× | 26% · 0.06× 💀 | 59% · 0.12× 💀 |
+| openrouter-deepgram-nova-3__raw | 72.1% | <4.4 | <4.4 | <4.4 | 100% · 0.06× 💀 | 100% · 0.08× 💀 | 36% · 0.07× 💀 | 15% · 0.05× | 7% · 0.07× | 85% · 0.07× 💀 | 26% · 0.06× 💀 | 100% · 0.07× 💀 | 14% · 0.06× | 82% · 0.05× 💀 | 63% · 0.06× 💀 | 48% · 0.07× 💀 | 14% · 0.03× | 99% · 0.07× 💀 | 100% · 0.07× 💀 | 100% · 0.06× 💀 | 100% · 0.03× 💀 | 100% · 0.03× 💀 | 100% · 0.03× 💀 | 100% · 0.06× 💀 |
+| openrouter-elevenlabs-scribe-v2__raw | 17.0% | 8.9 | 6.4 | 6.4 | 20% · 0.13× | 11% · 0.17× | 2% · 0.09× | 12% · 0.11× | 3% · 0.13× | 12% · 0.17× | 18% · 0.09× | 21% · 0.13× | 4% · 0.11× | 30% · 0.19× 💀 | 23% · 0.12× | 3% · 0.15× | 10% · 0.12× | 10% · 0.16× | 26% · 0.21× 💀 | 22% · 2.56× 🐢 | 14% · 0.27× | 13% · 0.18× | 17% · 0.17× | 47% · 0.31× 💀 |
+| openrouter-google-chirp-3__raw | 39.2% | 5.8 | <4.4 | <4.4 | 31% · 0.35× 💀 | 10% · 0.37× | 7% · 0.37× | 11% · 0.38× | 3% · 0.35× | 40% · 0.38× 💀 | 19% · 0.37× | 33% · 0.38× 💀 | 25% · 0.37× 💀 | 40% · 0.37× 💀 | 44% · 0.36× 💀 | 11% · 0.37× | 23% · 0.38× | 21% · 0.38× | 100% · 0.31× 💀 | 39% · 0.40× 💀 | 100% · 0.34× 💀 | 19% · 0.38× | 35% · 0.38× 💀 | 100% · 0.32× 💀 |
+| openrouter-google-gemini-3.5-transcribe__raw | 53.9% | 6.3 | <4.4 | <4.4 | 100% · 0.13× 💀 | 10% · 0.13× | 7% · 0.12× | 12% · 0.12× | 4% · 0.12× | 18% · 0.13× | 19% · 0.13× | 26% · 0.14× 💀 | 9% · 0.12× | 100% · 0.08× 💀 | 27% · 0.12× 💀 | 12% · 0.13× | 16% · 0.14× | 13% · 0.22× | 100% · 0.09× 💀 | 100% · 0.11× 💀 | 100% · 0.13× 💀 | 100% · 0.10× 💀 | 100% · 0.10× 💀 | 100% · 0.12× 💀 |
+| openrouter-mistralai-voxtral-small-transcribe-3-0__raw | 24.4% | 7.2 | <4.4 | <4.4 | 26% · 0.08× 💀 | 9% · 0.09× | 6% · 0.09× | 8% · 0.07× | 1% · 0.09× | 12% · 0.09× | 19% · 0.09× | 22% · 0.13× | 7% · 0.11× | 28% · 0.08× 💀 | 21% · 0.11× | 10% · 0.09× | 12% · 0.10× | 14% · 0.08× | 51% · 0.11× 💀 | 24% · 0.10× | 33% · 0.10× 💀 | 17% · 0.11× | 23% · 0.11× | 95% · 0.08× 💀 |
+| openrouter-openai-gpt-4o-transcribe__raw | 37.1% | 6.4 | <4.4 | <4.4 | 85% · 0.07× 💀 | 14% · 0.12× | 6% · 0.11× | 9% · 0.12× | 3% · 0.09× | 17% · 0.11× | 21% · 0.14× | 31% · 0.11× 💀 | 4% · 0.12× | 26% · 0.10× 💀 | 93% · 0.05× 💀 | 13% · 0.13× | 14% · 0.12× | 15% · 0.13× | 29% · 0.11× 💀 | 91% · 0.05× 💀 | 94% · 0.05× 💀 | 14% · 0.11× | 32% · 0.11× 💀 | 97% · 0.07× 💀 |
+| openrouter-openai-gpt-transcribe__raw | 22.7% | 7.4 | <4.4 | <4.4 | 32% · 0.07× 💀 | 13% · 0.07× | 4% · 0.09× | 10% · 0.08× | 3% · 0.08× | 27% · 0.08× 💀 | 21% · 0.10× | 29% · 0.08× 💀 | 7% · 0.07× | 32% · 0.07× 💀 | 25% · 0.07× 💀 | 10% · 0.08× | 9% · 0.09× | 18% · 0.09× | 31% · 0.08× 💀 | 32% · 0.08× 💀 | 22% · 0.11× | 17% · 0.10× | 27% · 0.09× 💀 | 60% · 0.10× 💀 |
+| openrouter-x-ai-grok-stt-2.0__raw | 23.3% | 7.3 | <4.4 | <4.4 | 33% · 0.11× 💀 | 9% · 0.11× | 9% · 0.11× | 12% · 0.11× | 3% · 0.05× | 23% · 0.12× | 20% · 0.06× | 31% · 0.11× 💀 | 6% · 0.11× | 36% · 0.06× 💀 | 26% · 0.13× 💀 | 10% · 0.10× | 14% · 0.12× | 17% · 0.11× | 38% · 0.12× 💀 | 26% · 0.08× 💀 | 29% · 0.09× 💀 | 13% · 0.06× | 29% · 0.07× 💀 | 55% · 0.09× 💀 |
+| parakeet-mlx-community-parakeet-tdt-0.6b-v2__raw | 27.5% | 7.0 | <4.4 | <4.4 | 31% · 0.02× 💀 | 12% · 0.02× | 6% · 0.02× | 12% · 0.02× | 5% · 0.03× | 31% · 0.03× 💀 | 21% · 0.02× | 35% · 0.02× 💀 | 9% · 0.02× | 35% · 0.02× 💀 | 24% · 0.02× | 12% · 0.02× | 16% · 0.02× | 23% · 0.02× | 55% · 0.03× 💀 | 28% · 0.02× 💀 | 30% · 0.02× 💀 | 25% · 0.02× | 31% · 0.02× 💀 | 70% · 0.13× 💀 |
+
+Segments easy → hard: fresh-jealous-type-doja-cat (4.44 syl/s), fresh-nightmares-gawne (4.82 syl/s), fresh-caught-you-in-the-bed-dax (4.93 syl/s), fresh-crash-out-king-iso (5.5 syl/s), fresh-raw-thoughts-vii-chris-webby (5.57 syl/s), fresh-richards-tale-set-the-scene-ren (5.89 syl/s), fresh-bad-news-merkules (6.16 syl/s), fresh-sk8-jid (6.28 syl/s), fresh-give-me-a-reason-nf (6.28 syl/s), fresh-behold-jid (6.49 syl/s), fresh-black-walt-street-the-new-breed-tech-n9ne (6.53 syl/s), fresh-call-them-less-logic (6.56 syl/s), fresh-monsters-joyner-lucas (6.87 syl/s), fresh-kumquat-token (6.89 syl/s), fresh-the-ropes-token (7.4 syl/s), fresh-gta-6-joyner-lucas (7.46 syl/s), fresh-one-of-them-joyner-lucas (7.96 syl/s), fresh-never-me-token (8.18 syl/s), fresh-animals-pt-i-jid (8.39 syl/s), fresh-titanic-gawne (10.53 syl/s)

@@ -1,9 +1,6 @@
 # DRAFT from lrclib.net (id 23010869: JID — Animals (Pt. I), 348s), trimmed to 12.8-40.8s.
-# Read along with audio/fresh-animals-pt-i-jid.wav, fix what's actually rapped,
-# then delete the TODO-VERIFY line below.
-TODO-VERIFY
-I beat up beats, I been upbeat
-You bet on me, you bet on me? Who better than me?
+# Verified by ear 2026-11-18 (scripts/verify_app.py).
+# NOTE: gets most of "metropolis" out but cuts off most of the "s" syllable
 You better believe it never could be, I'm ready to eat
 They better get it ready for me, I'm killin' the scene
 They gotta get a medical team, the gun a machine
@@ -25,4 +22,3 @@ Don't nobody wanna get sent to God
 Stay hit through the meat like shish kebab (hey)
 Take it up with a boss, man, I'm good at my job
 It's not a walk in the park 'cause I'm in a metropolis
-I'm lost in the thought but escapin' the darkness

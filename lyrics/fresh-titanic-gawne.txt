@@ -1,10 +1,7 @@
 # DRAFT from lrclib.net (id 30871325: Gawne — Titanic, 187s), trimmed to 147.7-174.3s.
-# Read along with audio/fresh-titanic-gawne.wav, fix what's actually rapped,
-# then delete the TODO-VERIFY line below.
-TODO-VERIFY
-'Cause I'm killin' everybody like a suicide note
-Who say Luke is not the G.O.A.T
-Fuck you, dawg, I'm cold
+# Verified by ear 2026-11-18 (scripts/verify_app.py).
+# NOTE: starts on aprt of the word "dawg", halfway through that bar, "I'm cold" comes across clean though. It ends part way through "celebrated", doesnt cleanly get the full word out.
+I'm cold
 Fuck around, find out, when I shoot a fofo
 Word to John F. Kennedy, I blast reload
 Put a few in your dome from the grassy knoll
