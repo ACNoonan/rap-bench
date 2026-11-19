@@ -8,7 +8,7 @@ runs them on fast rap instead, from "Lose Yourself" at 5.5 syllables per
 second up to the third verse of "Godzilla" at 10.6, and reports where each
 model falls off the cliff.
 
-Write-up: [Can Whisper transcribe "Rap God"?](https://adamnoonan-xyz.vercel.app/blog/rap-god/)
+Write-up: [Can Whisper transcribe "Rap God"?](https://adamnoonan.xyz/blog/rap-god/)
 
 ## What it measures
 
